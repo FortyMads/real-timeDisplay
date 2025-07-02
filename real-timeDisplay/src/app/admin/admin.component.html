@@ -1,0 +1,58 @@
+<div class="admin-container">
+  <h2 class="admin-title">Programme Admin Panel</h2>
+  <div class="admin-card">
+    <h3>Input Programme Schedule</h3>
+    <label for="programme-input" class="input-label">Paste programme text (Title;Start Time;Duration per line):</label>
+    <textarea id="programme-input" [(ngModel)]="inputText" (input)="onInputChange()" rows="5" class="input-area"></textarea>
+    <div class="input-divider">or</div>
+    <label for="file-upload" class="input-label">Upload a .txt file:</label>
+    <input id="file-upload" type="file" accept=".txt" (change)="onFileSelected($event)" class="input-file">
+    <button class="process-btn" (click)="processInput()">Process Programme</button>
+  </div>
+
+  <div *ngIf="currentTitle !== 'No active programme'" class="current-section">
+    <div class="current-card">
+      <div class="current-title">Current: <span>{{ currentTitle }}</span></div>
+      <div class="remaining-time" [ngStyle]="{'background-color': remainingColor, 'color': '#fff'}" [class.flashing]="remainingColor === 'red'">
+        Remaining Time: <span>{{ remainingTime }}</span>
+      </div>
+      <div class="admin-actions">
+        <button class="end-now-btn" (click)="endNow()">End Now</button>
+        <div class="skip-section">
+          <label for="skip-to">Skip to item:</label>
+          <select id="skip-to" [(ngModel)]="selectedSkipIndex" class="skip-dropdown">
+            <option [ngValue]="null" disabled selected>select item</option>
+            <option *ngFor="let item of futureItems; let i = index" [ngValue]="item.index">{{ item.title }} ({{ item.startTime }})</option>
+          </select>
+          <button class="skip-btn" (click)="skipToSelected()" [disabled]="selectedSkipIndex === null">Skip To</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="schedule-section">
+    <h3>Full Schedule</h3>
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Start Time</th>
+          <th>Duration</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of schedule">
+          <td>{{ item.title }}</td>
+          <td>{{ item.startTime }}</td>
+          <td>{{ item.duration }}</td>
+          <td>
+            <span *ngIf="item.actualEnd">Completed</span>
+            <span *ngIf="!item.actualEnd && item.actualStart">In Progress</span>
+            <span *ngIf="!item.actualStart && !item.actualEnd">Pending</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+<div class="display-container" id="displayContainer">
+  <button class="fullscreen-btn" (click)="goFullscreen()" title="Go Fullscreen">⛶</button>
+  <h3>Current Programme</h3>
+  <div *ngIf="currentTitle !== 'No active programme'; else noActive">
+    <div class="current-title">{{ currentTitle }}</div>
+    <div class="remaining-time" [ngStyle]="{'background-color': remainingColor, 'color': '#fff', 'padding': '0.5rem 1rem', 'border-radius': '6px', 'display': 'inline-block'}" [class.flashing]="remainingColor === 'red'">
+      Remaining Time: {{ remainingTime }}
+    </div>
+  </div>
+  <ng-template #noActive>
+    <div class="no-active">No active programme</div>
+  </ng-template>
+</div>
