@@ -44,11 +44,14 @@ export class AdminComponent implements OnDestroy {
   newStartTime: string = '';
   newDuration: number | null = null;
 
-  // For editing current programme
+  // For editing current activity
   editingCurrent: boolean = false;
   editTitle: string = '';
   editStartTime: string = '';
   editDuration: string = '';
+
+  // Control the add activity modal popup
+  showAddActivityModal: boolean = false;
 
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events for real-time refresh
@@ -63,7 +66,7 @@ export class AdminComponent implements OnDestroy {
   handleStorageEvent = (event: StorageEvent) => {
     if (event.key === 'programme-schedule' || event.key === 'programme-refresh') {
       this.schedule = this.sharedSchedule.getSchedule();
-      this.updateCurrentProgramme();
+      this.updateCurrentActivity();
       this.updateFutureItems();
     }
   }
@@ -92,7 +95,7 @@ export class AdminComponent implements OnDestroy {
     // Trigger refresh for all displays
     localStorage.setItem('programme-refresh', Date.now().toString());
     this.showModal = this.schedule.length > 0;
-    this.updateCurrentProgramme();
+    this.updateCurrentActivity();
     this.updateFutureItems();
     this.startTimer();
   }
@@ -136,7 +139,7 @@ export class AdminComponent implements OnDestroy {
     return end;
   }
 
-  updateCurrentProgramme(): void {
+  updateCurrentActivity(): void {
     const now = new Date();
     const current = this.schedule.find(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
     if (current) {
@@ -145,7 +148,7 @@ export class AdminComponent implements OnDestroy {
       this.remainingTime = this.formatMs(ms);
       this.remainingColor = this.getColor(ms);
     } else {
-      this.currentTitle = 'No active programme';
+      this.currentTitle = 'No active activity';
       this.remainingTime = '';
       this.remainingColor = 'gray';
     }
@@ -206,7 +209,7 @@ export class AdminComponent implements OnDestroy {
     this.sharedSchedule.setSchedule(this.schedule);
     localStorage.setItem('programme-refresh', Date.now().toString());
     this.schedule = this.sharedSchedule.getSchedule();
-    this.updateCurrentProgramme();
+    this.updateCurrentActivity();
     this.updateFutureItems();
   }
 
@@ -232,7 +235,7 @@ export class AdminComponent implements OnDestroy {
     this.newDuration = null;
   }
 
-  // For editing current programme
+  // For editing current activity
   startEditCurrent() {
     const now = new Date();
     const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
@@ -263,7 +266,7 @@ export class AdminComponent implements OnDestroy {
       this.sharedSchedule.setSchedule(this.schedule);
       localStorage.setItem('programme-refresh', Date.now().toString());
       this.schedule = this.sharedSchedule.getSchedule();
-      this.updateCurrentProgramme();
+      this.updateCurrentActivity();
       this.updateFutureItems();
       this.editingCurrent = false;
     }
@@ -290,7 +293,7 @@ export class AdminComponent implements OnDestroy {
 
   startTimer(): void {
     this.stopTimer();
-    this.timer = setInterval(() => this.updateCurrentProgramme(), 1000);
+    this.timer = setInterval(() => this.updateCurrentActivity(), 1000);
   }
 
   stopTimer(): void {
@@ -325,7 +328,7 @@ export class AdminComponent implements OnDestroy {
       localStorage.setItem('programme-refresh', Date.now().toString());
       // Reload schedule from local storage for all tabs
       this.schedule = this.sharedSchedule.getSchedule();
-      this.updateCurrentProgramme();
+      this.updateCurrentActivity();
     }
   }
 
@@ -365,7 +368,7 @@ export class AdminComponent implements OnDestroy {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'programme-schedule.txt';
+    a.download = 'activity-schedule.txt';
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {

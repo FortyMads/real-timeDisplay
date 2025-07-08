@@ -1,42 +1,49 @@
 <div class="admin-container">
-  <h2 class="admin-title" style="font-size: 2.8rem; font-weight: 900; letter-spacing: 1.5px; margin-bottom: 2.2rem; color: #1976d2; text-align: center;">Programme Admin Panel</h2>
+  <h2 class="admin-title" style="font-size: 2.8rem; font-weight: 900; letter-spacing: 1.5px; margin-bottom: 2.2rem; color: #1976d2; text-align: center;">Activity Admin Panel</h2>
 
   <div class="admin-tabs">
-    <button [class.active]="selectedTab === 'input'" (click)="selectedTab = 'input'">Input Programme</button>
+    <button [class.active]="selectedTab === 'input'" (click)="selectedTab = 'input'">Input Activity</button>
     <button [class.active]="selectedTab === 'schedule'" (click)="selectedTab = 'schedule'">View Schedule</button>
-    <button [class.active]="selectedTab === 'current'" (click)="selectedTab = 'current'">Current Programme</button>
+    <button [class.active]="selectedTab === 'current'" (click)="selectedTab = 'current'">Current Activity</button>
   </div>
 
-  <!-- Input Programme Tab -->
+  <!-- Input Activity Tab -->
   <div *ngIf="selectedTab === 'input'" class="admin-card">
-    <h3>Add Programme (Beginner Friendly)</h3>
-    <form (ngSubmit)="addProgramme()" #programmeForm="ngForm" class="programme-form" style="display: flex; flex-direction: row; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1.2rem;">
-      <div style="display: flex; flex-direction: column; min-width: 180px;">
-        <label>Title:
-          <input type="text" [(ngModel)]="newTitle" name="newTitle" required class="input-field" />
-        </label>
+    <button (click)="showAddActivityModal = true" class="add-activity-btn" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Add Activity (Beginner Friendly)</button>
+    <!-- Add Activity Modal -->
+    <div *ngIf="showAddActivityModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Add Activity</h3>
+        <form (ngSubmit)="addProgramme(); showAddActivityModal = false" #activityForm="ngForm" class="programme-form" style="display: flex; flex-direction: row; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1.2rem;">
+          <div style="display: flex; flex-direction: column; min-width: 180px;">
+            <label>Title:
+              <input type="text" [(ngModel)]="newTitle" name="newTitle" required class="input-field" />
+            </label>
+          </div>
+          <div style="display: flex; flex-direction: column; min-width: 140px;">
+            <label>Start Time:
+              <input type="time" [(ngModel)]="newStartTime" name="newStartTime" required class="input-field" />
+            </label>
+          </div>
+          <div style="display: flex; flex-direction: column; min-width: 120px;">
+            <label>Duration:
+              <input type="number" [(ngModel)]="newDuration" name="newDuration" min="1" required class="input-field" />
+              <span class="duration-label">minutes</span>
+            </label>
+          </div>
+          <button type="submit" [disabled]="!activityForm.form.valid" class="add-btn" style="margin-bottom: 0; height: 2.4rem;">Add</button>
+          <button type="button" (click)="showAddActivityModal = false" class="cancel-btn" style="margin-bottom: 0; height: 2.4rem; background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer;">Cancel</button>
+        </form>
       </div>
-      <div style="display: flex; flex-direction: column; min-width: 140px;">
-        <label>Start Time:
-          <input type="time" [(ngModel)]="newStartTime" name="newStartTime" required class="input-field" />
-        </label>
-      </div>
-      <div style="display: flex; flex-direction: column; min-width: 120px;">
-        <label>Duration:
-          <input type="number" [(ngModel)]="newDuration" name="newDuration" min="1" required class="input-field" />
-          <span class="duration-label">minutes</span>
-        </label>
-      </div>
-      <button type="submit" [disabled]="!programmeForm.form.valid" class="add-btn" style="margin-bottom: 0; height: 2.4rem;">Add</button>
-    </form>
+    </div>
     <hr />
-    <h3>Advanced: Input Programme Schedule</h3>
-    <label for="programme-input" class="input-label">Paste programme text (Title;Start Time;Duration per line):</label>
+    <h3>Advanced: Input Activity Schedule</h3>
+    <label for="programme-input" class="input-label">Paste activity text (Title;Start Time;Duration per line):</label>
     <textarea id="programme-input" [(ngModel)]="inputText" (input)="onInputChange()" rows="5" class="input-area"></textarea>
     <div class="input-divider">or</div>
     <label for="file-upload" class="input-label">Upload a .txt file:</label>
     <input id="file-upload" type="file" accept=".txt" (change)="onFileSelected($event)" class="input-file">
-    <button class="process-btn" (click)="processInput()">Process Programme</button>
+    <button class="process-btn" (click)="processInput()">Process Activity</button>
   </div>
 
   <!-- View Schedule Tab -->
