@@ -33,6 +33,23 @@ export class AdminComponent implements OnDestroy {
   selectedSkipIndex: number | null = null;
   futureItems: { index: number; title: string; startTime: string }[] = [];
 
+  // Tab selection for UI (now supports 3 tabs)
+  selectedTab: 'input' | 'schedule' | 'current' = 'input';
+
+  // Reference for the display iframe
+  displayIframe: HTMLIFrameElement | null = null;
+
+  // Beginner-friendly form fields
+  newTitle: string = '';
+  newStartTime: string = '';
+  newDuration: number | null = null;
+
+  // For editing current programme
+  editingCurrent: boolean = false;
+  editTitle: string = '';
+  editStartTime: string = '';
+  editDuration: string = '';
+
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events for real-time refresh
     window.addEventListener('storage', this.handleStorageEvent);
@@ -193,6 +210,69 @@ export class AdminComponent implements OnDestroy {
     this.updateFutureItems();
   }
 
+  // Add a programme from the beginner-friendly form
+  addProgramme(): void {
+    if (!this.newTitle || !this.newStartTime || !this.newDuration) return;
+    // Format start time as HH:mm
+    const startTime = this.newStartTime;
+    const duration = this.newDuration.toString();
+    const startDate = this.parseStartTime(startTime);
+    const endDate = this.addDuration(startDate, duration);
+    this.schedule.push({
+      title: this.newTitle,
+      startTime,
+      duration,
+      startDate,
+      endDate
+    });
+    this.sharedSchedule.setSchedule(this.schedule);
+    this.updateFutureItems();
+    this.newTitle = '';
+    this.newStartTime = '';
+    this.newDuration = null;
+  }
+
+  // For editing current programme
+  startEditCurrent() {
+    const now = new Date();
+    const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
+    if (idx !== -1) {
+      const prog = this.schedule[idx];
+      this.editTitle = prog.title;
+      this.editStartTime = prog.startTime;
+      this.editDuration = prog.duration;
+      this.editingCurrent = true;
+    }
+  }
+
+  saveEditCurrent() {
+    const now = new Date();
+    const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
+    if (idx !== -1) {
+      this.schedule[idx].title = this.editTitle;
+      this.schedule[idx].startTime = this.editStartTime;
+      this.schedule[idx].duration = this.editDuration;
+      // Recalculate startDate/endDate for current and following
+      this.schedule[idx].startDate = this.parseStartTime(this.editStartTime);
+      this.schedule[idx].endDate = this.addDuration(this.schedule[idx].startDate!, this.editDuration);
+      // Update following items' start/end
+      for (let i = idx + 1; i < this.schedule.length; i++) {
+        this.schedule[i].startDate = this.schedule[i-1].endDate;
+        this.schedule[i].endDate = this.addDuration(this.schedule[i].startDate!, this.schedule[i].duration);
+      }
+      this.sharedSchedule.setSchedule(this.schedule);
+      localStorage.setItem('programme-refresh', Date.now().toString());
+      this.schedule = this.sharedSchedule.getSchedule();
+      this.updateCurrentProgramme();
+      this.updateFutureItems();
+      this.editingCurrent = false;
+    }
+  }
+
+  cancelEditCurrent() {
+    this.editingCurrent = false;
+  }
+
   formatMs(ms: number): string {
     if (ms < 0) return '0:00';
     const totalSec = Math.floor(ms / 1000);
@@ -247,5 +327,50 @@ export class AdminComponent implements OnDestroy {
       this.schedule = this.sharedSchedule.getSchedule();
       this.updateCurrentProgramme();
     }
+  }
+
+  // Called when Full Screen button is clicked in Preview tab
+  sendFullscreenToDisplay() {
+    // Find the iframe
+    const iframe = document.querySelector('iframe[src="/display"]') as HTMLIFrameElement;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage({ action: 'goFullScreen' }, '*');
+    }
+  }
+
+  // Trigger fullscreen on the real display from the mini preview
+  sendMiniFullscreenToDisplay() {
+    // This should send a message to all open /display pages (not the preview iframe itself)
+    window.postMessage({ action: 'goFullScreen' }, '*');
+  }
+
+  openDisplayInNewWindow() {
+    const pos = JSON.parse(localStorage.getItem('displayWindowPos') || '{}');
+    const left = typeof pos.left === 'number' ? pos.left : 100;
+    const top = typeof pos.top === 'number' ? pos.top : 100;
+    const width = 900;
+    const height = 600;
+    window.open(
+      '/display',
+      '_blank',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+  }
+
+  downloadSchedule() {
+    // Convert schedule to text in the format: Title;Start Time;Duration\n
+    const lines = this.schedule.map(item => `${item.title};${item.startTime};${item.duration}`);
+    const text = lines.join('\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'programme-schedule.txt';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
   }
 }

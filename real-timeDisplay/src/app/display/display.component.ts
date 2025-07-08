@@ -25,22 +25,60 @@ export class DisplayComponent implements OnInit, OnDestroy {
   private timer: any;
 
   constructor(private sharedSchedule: SharedScheduleService) {
+    // Listen for storage events (across tabs)
     window.addEventListener('storage', this.handleStorageEvent);
+    // Listen for fullscreen command from admin
+    window.addEventListener('message', this.handleAdminMessage);
   }
 
   ngOnInit() {
+    this.loadScheduleFromLocalStorage();
     this.updateCurrentProgramme();
     this.timer = setInterval(() => this.updateCurrentProgramme(), 1000);
+    // Save window position on move/close
+    window.addEventListener('beforeunload', this.saveWindowPosition);
   }
 
   ngOnDestroy() {
     if (this.timer) clearInterval(this.timer);
     window.removeEventListener('storage', this.handleStorageEvent);
+    window.removeEventListener('message', this.handleAdminMessage);
+    window.removeEventListener('beforeunload', this.saveWindowPosition);
+  }
+
+  loadScheduleFromLocalStorage() {
+    const raw = localStorage.getItem('programme-schedule');
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw).map((p: any) => ({
+          ...p,
+          startDate: p.startDate ? new Date(p.startDate) : undefined,
+          endDate: p.endDate ? new Date(p.endDate) : undefined
+        }));
+        this.schedule = parsed;
+        console.log('[Display] Loaded schedule from localStorage:', this.schedule);
+      } catch (e) {
+        console.error('[Display] Failed to parse schedule from localStorage', e);
+      }
+    } else {
+      this.schedule = [];
+      console.log('[Display] No schedule found in localStorage.');
+    }
+  }
+
+  handleAdminMessage = (event: MessageEvent) => {
+    console.log('[Display] Received message event:', event);
+    if (event.data && event.data.action === 'goFullScreen') {
+      if (window === window.top) { // Only go fullscreen if not in an iframe
+        this.goFullscreen();
+      }
+    }
   }
 
   handleStorageEvent = (event: StorageEvent) => {
+    console.log('[Display] Storage event fired:', event);
     if (event.key === 'programme-schedule' || event.key === 'programme-refresh') {
-      this.schedule = this.sharedSchedule.getSchedule();
+      this.loadScheduleFromLocalStorage();
       this.updateCurrentProgramme();
     }
   }
@@ -53,10 +91,12 @@ export class DisplayComponent implements OnInit, OnDestroy {
       const ms = (current.endDate!.getTime() - now.getTime());
       this.remainingTime = this.formatMs(ms);
       this.remainingColor = this.getColor(ms);
+      console.log('[Display] Current programme:', this.currentTitle, 'Remaining:', this.remainingTime);
     } else {
       this.currentTitle = 'No active programme';
       this.remainingTime = '';
       this.remainingColor = 'gray';
+      console.log('[Display] No active programme.');
     }
   }
 
@@ -113,5 +153,16 @@ export class DisplayComponent implements OnInit, OnDestroy {
     end.setMinutes(end.getMinutes() + min);
     if (sec) end.setSeconds(end.getSeconds() + sec);
     return end;
+  }
+
+  saveWindowPosition = () => {
+    try {
+      localStorage.setItem('displayWindowPos', JSON.stringify({
+        left: window.screenX,
+        top: window.screenY
+      }));
+    } catch (e) {
+      // Ignore
+    }
   }
 }
