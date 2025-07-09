@@ -3,13 +3,18 @@
 
   <div class="admin-tabs">
     <button [class.active]="selectedTab === 'input'" (click)="selectedTab = 'input'">Input Activity</button>
-    <button [class.active]="selectedTab === 'schedule'" (click)="selectedTab = 'schedule'">View Schedule</button>
+    <button [class.active]="selectedTab === 'schedule'" (click)="selectedTab = 'schedule'">View Programme</button>
     <button [class.active]="selectedTab === 'current'" (click)="selectedTab = 'current'">Current Activity</button>
   </div>
 
   <!-- Input Activity Tab -->
   <div *ngIf="selectedTab === 'input'" class="admin-card">
-    <button (click)="showAddActivityModal = true" class="add-activity-btn" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Add Activity (Beginner Friendly)</button>
+    <button (click)="openAddActivityModal()" class="add-activity-btn" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Add Activity (Beginner Friendly)</button>
+    <button (click)="openMultiActivityModal()" class="add-activity-btn" style="margin-bottom: 1.2rem; background: #388e3c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Add Multiple Activities</button>
+    <!-- Confirmation Popup -->
+    <div *ngIf="showConfirmation" class="confirmation-popup" style="position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background: #23283a; color: #fff; padding: 1.1rem 2.2rem; border-radius: 10px; font-size: 1.15rem; font-weight: 600; box-shadow: 0 2px 12px rgba(30,64,175,0.18); z-index: 9999; text-align: center;">
+      {{ confirmationMessage }}
+    </div>
     <!-- Add Activity Modal -->
     <div *ngIf="showAddActivityModal" class="modal-overlay">
       <div class="modal-content">
@@ -36,6 +41,34 @@
         </form>
       </div>
     </div>
+    <!-- Add Multiple Activities Modal -->
+    <div *ngIf="showMultiActivityModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Add Multiple Activities</h3>
+        <form #multiForm="ngForm" style="display: flex; flex-direction: row; gap: 1.5rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1.2rem;">
+          <div style="display: flex; flex-direction: column; min-width: 180px;">
+            <label>Title:
+              <input type="text" [(ngModel)]="multiTitle" name="multiTitle" required class="input-field" />
+            </label>
+          </div>
+          <div style="display: flex; flex-direction: column; min-width: 140px;">
+            <label>Start Time:
+              <input type="time" [(ngModel)]="multiStartTime" name="multiStartTime" required class="input-field" />
+            </label>
+          </div>
+          <div style="display: flex; flex-direction: column; min-width: 120px;">
+            <label>Duration:
+              <input type="number" [(ngModel)]="multiDuration" name="multiDuration" min="1" required class="input-field" />
+              <span class="duration-label">minutes</span>
+            </label>
+          </div>
+        </form>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+          <button (click)="addAnotherActivity()" [disabled]="!multiTitle || !multiStartTime || !multiDuration" class="add-btn" style="background: #388e3c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer;">Add Another</button>
+          <button (click)="closeMultiActivityModal()" class="cancel-btn" style="background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer;">Done</button>
+        </div>
+      </div>
+    </div>
     <hr />
     <h3>Advanced: Input Activity Schedule</h3>
     <label for="programme-input" class="input-label">Paste activity text (Title;Start Time;Duration per line):</label>
@@ -44,12 +77,23 @@
     <label for="file-upload" class="input-label">Upload a .txt file:</label>
     <input id="file-upload" type="file" accept=".txt" (change)="onFileSelected($event)" class="input-file">
     <button class="process-btn" (click)="processInput()">Process Activity</button>
+    <!-- Saved Programmes Section -->
+    <div class="saved-programmes-section" style="margin: 2rem 0 1.5rem 0; padding: 1.2rem; background: #f5f7fa; border-radius: 10px; box-shadow: 0 2px 8px rgba(30,64,175,0.07);">
+      <h4 style="margin-bottom: 0.7rem; color: #1976d2; font-size: 1.13rem; font-weight: 700;">Saved Programmes</h4>
+      <div *ngIf="savedProgrammes.length === 0" style="color: #888; font-size: 1.05rem;">No saved programmes yet.</div>
+      <ul *ngIf="savedProgrammes.length > 0" style="list-style: none; padding: 0; margin: 0;">
+        <li *ngFor="let prog of savedProgrammes" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 1.2rem;">
+          <span style="font-weight: 600; color: #333;">{{ prog }}</span>
+          <button (click)="loadProgramme(prog)" style="background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 1.1rem; font-size: 1rem; cursor: pointer;">Load</button>
+        </li>
+      </ul>
+    </div>
   </div>
 
-  <!-- View Schedule Tab -->
+  <!-- View Programme Tab -->
   <div *ngIf="selectedTab === 'schedule'" class="schedule-section">
-    <h3>Full Schedule</h3>
-    <button class="save-schedule-btn" (click)="downloadSchedule()" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Save Schedule</button>
+    <h3>Full Programme</h3>
+    <button class="save-schedule-btn" (click)="promptAndSaveProgramme()" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Save Programme</button>
     <table class="schedule-table">
       <thead>
         <tr>

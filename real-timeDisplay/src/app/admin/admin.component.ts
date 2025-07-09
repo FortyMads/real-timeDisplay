@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { SharedScheduleService } from '../shared-schedule.service';
@@ -20,7 +20,7 @@ interface Programme {
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
-export class AdminComponent implements OnDestroy {
+export class AdminComponent implements OnDestroy, OnInit {
   inputText: string = '';
   schedule: Programme[] = [];
   showModal: boolean = false;
@@ -52,10 +52,27 @@ export class AdminComponent implements OnDestroy {
 
   // Control the add activity modal popup
   showAddActivityModal: boolean = false;
+  // Control the add multiple activities modal popup
+  showMultiActivityModal: boolean = false;
+  // For multi-activity entry (single set of fields)
+  multiTitle: string = '';
+  multiStartTime: string = '';
+  multiDuration: number | null = null;
+
+  // Confirmation popup
+  confirmationMessage: string = '';
+  showConfirmation: boolean = false;
+
+  // List of saved programmes (filenames)
+  savedProgrammes: string[] = [];
 
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events for real-time refresh
     window.addEventListener('storage', this.handleStorageEvent);
+  }
+
+  ngOnInit() {
+    this.loadSavedProgrammes();
   }
 
   ngOnDestroy(): void {
@@ -215,7 +232,10 @@ export class AdminComponent implements OnDestroy {
 
   // Add a programme from the beginner-friendly form
   addProgramme(): void {
-    if (!this.newTitle || !this.newStartTime || !this.newDuration) return;
+    if (!this.newTitle || !this.newStartTime || !this.newDuration) {
+      this.showConfirmationPopup('Please fill in all fields.');
+      return;
+    }
     // Format start time as HH:mm
     const startTime = this.newStartTime;
     const duration = this.newDuration.toString();
@@ -233,6 +253,8 @@ export class AdminComponent implements OnDestroy {
     this.newTitle = '';
     this.newStartTime = '';
     this.newDuration = null;
+    this.showAddActivityModal = false;
+    this.showConfirmationPopup('Activity added successfully!');
   }
 
   // For editing current activity
@@ -274,6 +296,38 @@ export class AdminComponent implements OnDestroy {
 
   cancelEditCurrent() {
     this.editingCurrent = false;
+  }
+
+  // Add another activity from the multi-activity modal
+  addAnotherActivity() {
+    if (!this.multiTitle || !this.multiStartTime || !this.multiDuration) {
+      this.showConfirmationPopup('Please fill in all fields.');
+      return;
+    }
+    const startDate = this.parseStartTime(this.multiStartTime);
+    const endDate = this.addDuration(startDate, this.multiDuration.toString());
+    this.schedule.push({
+      title: this.multiTitle,
+      startTime: this.multiStartTime,
+      duration: this.multiDuration.toString(),
+      startDate,
+      endDate
+    });
+    this.sharedSchedule.setSchedule(this.schedule);
+    this.updateFutureItems();
+    // Clear fields for next entry
+    this.multiTitle = '';
+    this.multiStartTime = '';
+    this.multiDuration = null;
+    this.showConfirmationPopup('Activity added! Enter another or click Done.');
+  }
+
+  // Optionally, close modal and clear fields
+  closeMultiActivityModal() {
+    this.showMultiActivityModal = false;
+    this.multiTitle = '';
+    this.multiStartTime = '';
+    this.multiDuration = null;
   }
 
   formatMs(ms: number): string {
@@ -375,5 +429,70 @@ export class AdminComponent implements OnDestroy {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     }, 0);
+  }
+
+  // Open Add Activity modal and close the other
+  openAddActivityModal() {
+    this.showAddActivityModal = true;
+    this.showMultiActivityModal = false;
+  }
+  // Open Add Multiple Activities modal and close the other
+  openMultiActivityModal() {
+    this.showMultiActivityModal = true;
+    this.showAddActivityModal = false;
+  }
+  // Show confirmation popup
+  showConfirmationPopup(message: string) {
+    this.confirmationMessage = message;
+    this.showConfirmation = true;
+    setTimeout(() => { this.showConfirmation = false; }, 2000);
+  }
+
+  // Load list of saved programmes from localStorage
+  loadSavedProgrammes() {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('programme-'));
+    this.savedProgrammes = keys.map(k => k.replace('programme-', ''));
+  }
+  // Save current schedule as a programme in localStorage
+  saveProgrammeToLocal(name: string) {
+    const lines = this.schedule.map(item => `${item.title};${item.startTime};${item.duration}`);
+    localStorage.setItem('programme-' + name, lines.join('\n'));
+    this.loadSavedProgrammes();
+  }
+  // Load a saved programme into the schedule
+  loadProgramme(name: string) {
+    const data = localStorage.getItem('programme-' + name);
+    if (!data) {
+      this.showConfirmationPopup('Programme not found.');
+      return;
+    }
+    this.inputText = data;
+    this.parseAndStoreSchedule();
+    this.updateFutureItems();
+    this.showConfirmationPopup('Programme loaded!');
+  }
+
+  promptAndSaveProgramme() {
+    const programmeName = prompt('Enter a name for this programme:');
+    if (!programmeName) {
+      this.showConfirmationPopup('Programme name is required.');
+      return;
+    }
+    // Save all activities as one programme
+    const lines = this.schedule.map(item => `${item.title};${item.startTime};${item.duration}`);
+    const text = lines.join('\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${programmeName}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }, 0);
+    this.saveProgrammeToLocal(programmeName);
+    this.showConfirmationPopup('Programme saved!');
   }
 }
