@@ -1,12 +1,12 @@
 <div class="display-container" id="displayContainer">
-  <div *ngIf="currentTitle !== 'No active programme'; else noActive">
+  <div *ngIf="currentTitle !== 'No active activity'; else noActive">
     <div class="current-title">{{ currentTitle }}</div>
     <div class="remaining-time" [ngStyle]="{'background-color': remainingColor, 'color': '#fff', 'border-radius': '6px', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center', 'width': '100vw', 'height': '75vh', 'margin': '0 auto'}" [class.flashing]="remainingColor === 'red'">
       {{ remainingTime }}
     </div>
   </div>
   <ng-template #noActive>
-    <div class="no-active">No active programme</div>
+    <div class="no-active">No active activity</div>
   </ng-template>
   <button class="fullscreen-icon-btn" (click)="goFullscreen()" title="Go Fullscreen">
     <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">

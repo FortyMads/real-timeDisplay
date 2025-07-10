@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedScheduleService } from '../shared-schedule.service';
 
-interface Programme {
+interface Activity {
   title: string;
   startTime: string;
   duration: string;
@@ -18,7 +18,7 @@ interface Programme {
   styleUrls: ['./display.component.css']
 })
 export class DisplayComponent implements OnInit, OnDestroy {
-  @Input() schedule: Programme[] = [];
+  @Input() schedule: Activity[] = [];
   currentTitle: string = '';
   remainingTime: string = '';
   remainingColor: string = 'green';
@@ -33,8 +33,8 @@ export class DisplayComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadScheduleFromLocalStorage();
-    this.updateCurrentProgramme();
-    this.timer = setInterval(() => this.updateCurrentProgramme(), 1000);
+    this.updateCurrentActivity();
+    this.timer = setInterval(() => this.updateCurrentActivity(), 1000);
     // Save window position on move/close
     window.addEventListener('beforeunload', this.saveWindowPosition);
   }
@@ -79,11 +79,11 @@ export class DisplayComponent implements OnInit, OnDestroy {
     console.log('[Display] Storage event fired:', event);
     if (event.key === 'programme-schedule' || event.key === 'programme-refresh') {
       this.loadScheduleFromLocalStorage();
-      this.updateCurrentProgramme();
+      this.updateCurrentActivity();
     }
   }
 
-  updateCurrentProgramme(): void {
+  updateCurrentActivity(): void {
     const now = new Date();
     const current = this.schedule.find(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
     if (current) {
@@ -91,12 +91,12 @@ export class DisplayComponent implements OnInit, OnDestroy {
       const ms = (current.endDate!.getTime() - now.getTime());
       this.remainingTime = this.formatMs(ms);
       this.remainingColor = this.getColor(ms);
-      console.log('[Display] Current programme:', this.currentTitle, 'Remaining:', this.remainingTime);
+      console.log('[Display] Current activity:', this.currentTitle, 'Remaining:', this.remainingTime);
     } else {
-      this.currentTitle = 'No active programme';
+      this.currentTitle = 'No active activity';
       this.remainingTime = '';
       this.remainingColor = 'gray';
-      console.log('[Display] No active programme.');
+      console.log('[Display] No active activity.');
     }
   }
 
@@ -142,7 +142,7 @@ export class DisplayComponent implements OnInit, OnDestroy {
       this.sharedSchedule.setSchedule(this.schedule);
       // Reload schedule from local storage for all tabs
       this.schedule = this.sharedSchedule.getSchedule();
-      this.updateCurrentProgramme();
+      this.updateCurrentActivity();
     }
   }
 
