@@ -10,6 +10,14 @@ interface Activity {
   endDate?: Date;
 }
 
+/**
+ * DisplayComponent
+ * Handles real-time display of the current programme schedule.
+ * - Syncs schedule from localStorage and across tabs/windows
+ * - Shows current activity and remaining time
+ * - Supports fullscreen and window position persistence
+ * - Listens for admin commands via postMessage
+ */
 @Component({
   selector: 'app-display',
   standalone: true,
@@ -18,10 +26,17 @@ interface Activity {
   styleUrls: ['./display.component.css']
 })
 export class DisplayComponent implements OnInit, OnDestroy {
+  /**
+   * The current schedule to display (array of activities)
+   */
   @Input() schedule: Activity[] = [];
+  /** Current activity title */
   currentTitle: string = '';
+  /** Remaining time for current activity */
   remainingTime: string = '';
+  /** Color for remaining time (green/orange/red/gray) */
   remainingColor: string = 'green';
+  /** Timer interval for updating current activity */
   private timer: any;
 
   constructor(private sharedSchedule: SharedScheduleService) {
@@ -31,6 +46,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     window.addEventListener('message', this.handleAdminMessage);
   }
 
+  /**
+   * On component init, load schedule and start timer
+   */
   ngOnInit() {
     this.loadScheduleFromLocalStorage();
     this.updateCurrentActivity();
@@ -39,6 +57,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     window.addEventListener('beforeunload', this.saveWindowPosition);
   }
 
+  /**
+   * Cleanup listeners and timer on destroy
+   */
   ngOnDestroy() {
     if (this.timer) clearInterval(this.timer);
     window.removeEventListener('storage', this.handleStorageEvent);
@@ -46,6 +67,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     window.removeEventListener('beforeunload', this.saveWindowPosition);
   }
 
+  /**
+   * Load schedule from localStorage (used for real-time sync)
+   */
   loadScheduleFromLocalStorage() {
     const raw = localStorage.getItem('programme-schedule');
     if (raw) {
@@ -66,6 +90,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Handle admin fullscreen command via postMessage
+   */
   handleAdminMessage = (event: MessageEvent) => {
     console.log('[Display] Received message event:', event);
     if (event.data && event.data.action === 'goFullScreen') {
@@ -75,6 +102,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Handle localStorage changes for real-time schedule sync
+   */
   handleStorageEvent = (event: StorageEvent) => {
     console.log('[Display] Storage event fired:', event);
     if (event.key === 'programme-schedule' || event.key === 'programme-refresh') {
@@ -83,6 +113,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Update the current activity and remaining time
+   */
   updateCurrentActivity(): void {
     const now = new Date();
     const current = this.schedule.find(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
@@ -100,6 +133,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Format milliseconds to mm:ss string
+   */
   formatMs(ms: number): string {
     if (ms < 0) return '0:00';
     const totalSec = Math.floor(ms / 1000);
@@ -108,6 +144,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     return `${min}:${sec.toString().padStart(2, '0')}`;
   }
 
+  /**
+   * Get color for remaining time based on minutes left
+   */
   getColor(ms: number): string {
     const min = ms / 60000;
     if (min > 5) return 'green';
@@ -115,6 +154,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     return 'red';
   }
 
+  /**
+   * Request fullscreen for the display container
+   */
   goFullscreen() {
     const elem = document.getElementById('displayContainer');
     if (elem && elem.requestFullscreen) {
@@ -126,6 +168,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * End the current activity immediately and start the next
+   */
   endNow() {
     const now = new Date();
     const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
@@ -146,6 +191,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Add duration (mm or mm:ss) to a start Date
+   */
   addDuration(start: Date, duration: string): Date {
     // Expects mm or mm:ss
     const [min, sec] = duration.split(':').map(Number);
@@ -155,6 +203,9 @@ export class DisplayComponent implements OnInit, OnDestroy {
     return end;
   }
 
+  /**
+   * Save window position to localStorage for multi-window support
+   */
   saveWindowPosition = () => {
     try {
       localStorage.setItem('displayWindowPos', JSON.stringify({

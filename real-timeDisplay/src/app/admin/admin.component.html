@@ -9,31 +9,8 @@
 
   <!-- Input Activity Tab -->
   <div *ngIf="selectedTab === 'input'" class="admin-card">
-    <!-- Saved Programmes Table -->
-    <div class="saved-programmes-table" style="margin-bottom: 2rem;">
-      <h3 style="color: #1976d2; font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Saved Programmes</h3>
-      <table style="width: 100%; border-collapse: collapse; background: #f5f7fa; border-radius: 10px; box-shadow: 0 2px 8px rgba(30,64,175,0.07);">
-        <thead>
-          <tr style="background: #e3eaf5;">
-            <th style="padding: 0.7rem 1rem; text-align: left; font-size: 1.08rem; color: #1976d2;">Programme Name</th>
-            <th style="padding: 0.7rem 1rem; text-align: left; font-size: 1.08rem; color: #1976d2;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let prog of savedProgrammes">
-            <td style="padding: 0.7rem 1rem; font-weight: 600; color: #333;">{{ prog }}</td>
-            <td style="padding: 0.7rem 1rem;">
-              <button (click)="loadProgramme(prog)" style="background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 1.1rem; font-size: 1rem; cursor: pointer;">Load</button>
-            </td>
-          </tr>
-          <tr *ngIf="savedProgrammes.length === 0">
-            <td colspan="2" style="padding: 0.7rem 1rem; color: #888; font-size: 1.05rem; text-align: center;">No saved programmes yet.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <button (click)="openAddActivityModal()" class="add-activity-btn" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Add Activity (Beginner Friendly)</button>
-    <button (click)="openMultiActivityModal()" class="add-activity-btn" style="margin-bottom: 1.2rem; background: #388e3c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Add Multiple Activities</button>
+    <button (click)="toggleAddActivityModal()" class="add-activity-btn" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Add Activity (Beginner Friendly)</button>
+    <button (click)="toggleMultiActivityModal()" class="add-activity-btn" style="margin-bottom: 1.2rem; background: #388e3c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Add Multiple Activities</button>
     <!-- Confirmation Popup -->
     <div *ngIf="showConfirmation" class="confirmation-popup" style="position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background: #23283a; color: #fff; padding: 1.1rem 2.2rem; border-radius: 10px; font-size: 1.15rem; font-weight: 600; box-shadow: 0 2px 12px rgba(30,64,175,0.18); z-index: 9999; text-align: center;">
       {{ confirmationMessage }}
@@ -92,31 +69,35 @@
         </div>
       </div>
     </div>
-    <hr />
-    <h3>Advanced: Input Activity Schedule</h3>
-    <label for="programme-input" class="input-label">Paste activity text (Title;Start Time;Duration per line):</label>
-    <textarea id="programme-input" [(ngModel)]="inputText" (input)="onInputChange()" rows="5" class="input-area"></textarea>
-    <div class="input-divider">or</div>
-    <label for="file-upload" class="input-label">Upload a .txt file:</label>
-    <input id="file-upload" type="file" accept=".txt" (change)="onFileSelected($event)" class="input-file">
-    <button class="process-btn" (click)="processInput()">Process Activity</button>
-    <!-- Saved Programmes Section -->
-    <div class="saved-programmes-section" style="margin: 2rem 0 1.5rem 0; padding: 1.2rem; background: #f5f7fa; border-radius: 10px; box-shadow: 0 2px 8px rgba(30,64,175,0.07);">
-      <h4 style="margin-bottom: 0.7rem; color: #1976d2; font-size: 1.13rem; font-weight: 700;">Saved Programmes</h4>
-      <div *ngIf="savedProgrammes.length === 0" style="color: #888; font-size: 1.05rem;">No saved programmes yet.</div>
-      <ul *ngIf="savedProgrammes.length > 0" style="list-style: none; padding: 0; margin: 0;">
-        <li *ngFor="let prog of savedProgrammes" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 1.2rem;">
-          <span style="font-weight: 600; color: #333;">{{ prog }}</span>
-          <button (click)="loadProgramme(prog)" style="background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 1.1rem; font-size: 1rem; cursor: pointer;">Load</button>
-        </li>
-      </ul>
-    </div>
   </div>
 
   <!-- View Programme Tab -->
   <div *ngIf="selectedTab === 'schedule'" class="schedule-section">
     <h3>Full Programme</h3>
     <button class="save-schedule-btn" (click)="promptAndSaveProgramme()" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Save Programme</button>
+    <!-- Saved Programmes Table (moved here) -->
+    <div class="saved-programmes-table" style="margin-bottom: 2rem;">
+      <h3 style="color: #1976d2; font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Saved Programmes</h3>
+      <table style="width: 100%; border-collapse: collapse; background: #f5f7fa; border-radius: 10px; box-shadow: 0 2px 8px rgba(30,64,175,0.07);">
+        <thead>
+          <tr style="background: #e3eaf5;">
+            <th style="padding: 0.7rem 1rem; text-align: left; font-size: 1.08rem; color: #1976d2;">Programme Name</th>
+            <th style="padding: 0.7rem 1rem; text-align: left; font-size: 1.08rem; color: #1976d2;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prog of savedProgrammes">
+            <td style="padding: 0.7rem 1rem; font-weight: 600; color: #333;">{{ prog }}</td>
+            <td style="padding: 0.7rem 1rem;">
+              <button (click)="loadProgramme(prog)" style="background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 1.1rem; font-size: 1rem; cursor: pointer;">Load</button>
+            </td>
+          </tr>
+          <tr *ngIf="savedProgrammes.length === 0">
+            <td colspan="2" style="padding: 0.7rem 1rem; color: #888; font-size: 1.05rem; text-align: center;">No saved programmes yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <table class="schedule-table">
       <thead>
         <tr>
@@ -189,6 +170,25 @@
         </div>
       </div>
       <button (click)="openDisplayInNewWindow()" class="open-display-btn" style="margin-top: 1.2rem; width: 220px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">Open Display in New Window</button>
+    </div>
+  </div>
+
+  <!-- Edit Programme Modal -->
+  <div *ngIf="showEditProgrammeModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 650px;">
+      <h3>Edit Programme: {{ editProgrammeName }}</h3>
+      <form #editForm="ngForm" style="display: flex; flex-direction: column; gap: 1.2rem;">
+        <div *ngFor="let item of editProgrammeItems; let i = index" style="display: flex; gap: 1rem; align-items: center;">
+          <input type="text" [(ngModel)]="editProgrammeItems[i].title" name="editTitle{{i}}" required placeholder="Title" style="min-width: 120px;" />
+          <input type="time" [(ngModel)]="editProgrammeItems[i].startTime" name="editStartTime{{i}}" required style="min-width: 100px;" />
+          <input type="text" [(ngModel)]="editProgrammeItems[i].duration" name="editDuration{{i}}" required placeholder="Duration (mm or mm:ss)" style="min-width: 80px;" />
+          <button type="button" (click)="editProgrammeItems.splice(i, 1)" style="background: #b71c1c; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 0.8rem; font-size: 1rem; cursor: pointer;">Delete</button>
+        </div>
+      </form>
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end;">
+        <button (click)="confirmEditProgramme()" style="background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer;">Confirm & Load</button>
+        <button (click)="cancelEditProgramme()" style="background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer;">Cancel</button>
+      </div>
     </div>
   </div>
 </div>

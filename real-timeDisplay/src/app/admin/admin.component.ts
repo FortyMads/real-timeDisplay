@@ -66,6 +66,11 @@ export class AdminComponent implements OnDestroy, OnInit {
   // List of saved programmes (filenames)
   savedProgrammes: string[] = [];
 
+  // For editing loaded programme
+  showEditProgrammeModal: boolean = false;
+  editProgrammeItems: Programme[] = [];
+  editProgrammeName: string = '';
+
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events for real-time refresh
     window.addEventListener('storage', this.handleStorageEvent);
@@ -441,6 +446,17 @@ export class AdminComponent implements OnDestroy, OnInit {
     this.showMultiActivityModal = true;
     this.showAddActivityModal = false;
   }
+  // Toggle Add Activity modal
+  toggleAddActivityModal() {
+    this.showAddActivityModal = !this.showAddActivityModal;
+    if (this.showAddActivityModal) this.showMultiActivityModal = false;
+  }
+
+  // Toggle Add Multiple Activities modal
+  toggleMultiActivityModal() {
+    this.showMultiActivityModal = !this.showMultiActivityModal;
+    if (this.showMultiActivityModal) this.showAddActivityModal = false;
+  }
   // Show confirmation popup
   showConfirmationPopup(message: string) {
     this.confirmationMessage = message;
@@ -466,12 +482,48 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.showConfirmationPopup('Programme not found.');
       return;
     }
-    this.inputText = data;
+    // Parse activities for editing
+    const items: Programme[] = [];
+    const lines = data.split('\n');
+    for (const line of lines) {
+      const parts = line.split(';');
+      if (parts.length === 3) {
+        items.push({
+          title: parts[0].trim(),
+          startTime: parts[1].trim(),
+          duration: parts[2].trim()
+        });
+      }
+    }
+    this.editProgrammeItems = items;
+    this.editProgrammeName = name;
+    this.showEditProgrammeModal = true;
+  }
+
+  // Confirm and load edited programme
+  confirmEditProgramme() {
+    // Validate edited items
+    if (this.editProgrammeItems.some(item => !item.title || !item.startTime || !item.duration)) {
+      this.showConfirmationPopup('Please fill in all fields for every activity.');
+      return;
+    }
+    // Convert to text and process
+    const text = this.editProgrammeItems.map(item => `${item.title};${item.startTime};${item.duration}`).join('\n');
+    this.inputText = text;
     this.parseAndStoreSchedule();
     this.updateFutureItems();
+    this.showEditProgrammeModal = false;
     this.showConfirmationPopup('Programme loaded!');
   }
 
+  // Cancel editing
+  cancelEditProgramme() {
+    this.showEditProgrammeModal = false;
+    this.editProgrammeItems = [];
+    this.editProgrammeName = '';
+  }
+
+  // Prompt and save programme (used by Save Programme button)
   promptAndSaveProgramme() {
     const programmeName = prompt('Enter a name for this programme:');
     if (!programmeName) {
