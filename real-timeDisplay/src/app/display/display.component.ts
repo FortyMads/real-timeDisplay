@@ -91,12 +91,21 @@ export class DisplayComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle admin fullscreen command via postMessage
+   * Handle admin fullscreen toggle command via postMessage
+   * Supports both opening and closing fullscreen
    */
   handleAdminMessage = (event: MessageEvent) => {
     console.log('[Display] Received message event:', event);
-    if (event.data && event.data.action === 'goFullScreen') {
-      if (window === window.top) { // Only go fullscreen if not in an iframe
+    if (event.data && event.data.action === 'toggleFullScreen') {
+      if (window === window.top) {
+        if (!document.fullscreenElement) {
+          this.goFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+    } else if (event.data && event.data.action === 'goFullScreen') {
+      if (window === window.top) {
         this.goFullscreen();
       }
     }

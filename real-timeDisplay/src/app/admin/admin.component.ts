@@ -547,4 +547,9 @@ export class AdminComponent implements OnDestroy, OnInit {
     this.saveProgrammeToLocal(programmeName);
     this.showConfirmationPopup('Programme saved!');
   }
+
+  // Toggle fullscreen for all open display windows (not preview iframe)
+  toggleFullscreenOnDisplays() {
+    window.postMessage({ action: 'toggleFullScreen' }, '*');
+  }
 }
