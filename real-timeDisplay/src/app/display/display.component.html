@@ -1,5 +1,10 @@
 <div class="display-container" id="displayContainer">
-  <div *ngIf="currentTitle !== 'No active activity'; else noActive">
+  <!-- Announcement overlay -->
+  <div *ngIf="announcement" class="announcement-overlay">
+    <div class="announcement-text">{{ announcement }}</div>
+  </div>
+  <!-- Main timer display -->
+  <div *ngIf="currentTitle !== 'No active activity' && !announcement; else noActive">
     <div class="current-title">{{ currentTitle }}</div>
     <div class="remaining-time" [ngStyle]="{'background-color': remainingColor, 'color': '#fff', 'border-radius': '6px', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center', 'width': '100vw', 'height': '75vh', 'margin': '0 auto'}" [class.flashing]="remainingColor === 'red'">
       {{ remainingTime }}
@@ -17,3 +22,28 @@
     </svg>
   </button>
 </div>
+
+<style>
+.announcement-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.85);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.announcement-text {
+  color: #fff;
+  font-size: 3em;
+  font-weight: bold;
+  text-align: center;
+  padding: 2em;
+  background: rgba(0,0,0,0.6);
+  border-radius: 16px;
+  box-shadow: 0 0 24px #000;
+}
+</style>

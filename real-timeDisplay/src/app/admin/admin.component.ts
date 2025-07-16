@@ -34,7 +34,7 @@ export class AdminComponent implements OnDestroy, OnInit {
   futureItems: { index: number; title: string; startTime: string }[] = [];
 
   // Tab selection for UI (now supports 3 tabs)
-  selectedTab: 'input' | 'schedule' | 'current' = 'input';
+  selectedTab: 'input' | 'schedule' | 'current' | 'announcements' = 'input';
 
   // Reference for the display iframe
   displayIframe: HTMLIFrameElement | null = null;
@@ -77,6 +77,14 @@ export class AdminComponent implements OnDestroy, OnInit {
       data: 'Opening Remarks;09:00;15\nKeynote;09:15;45\nBreak;10:00;15\nSession 1;10:15;60\nLunch;11:15;60'
     }
   ];
+
+  // Announcement logic
+  announcementText: string = '';
+  activeAnnouncement: string | null = null;
+  announcementTimeout: any = null;
+
+  // Announcement duration in minutes (default 2)
+  announcementDuration: number = 2;
 
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events for real-time refresh
@@ -575,4 +583,21 @@ export class AdminComponent implements OnDestroy, OnInit {
   showEditProgrammeModal: boolean = false;
   editProgrammeItems: Programme[] = [];
   editProgrammeName: string = '';
+
+  sendAnnouncement() {
+    if (!this.announcementText.trim()) return;
+    this.activeAnnouncement = this.announcementText.trim();
+    // Send announcement to display via localStorage
+    localStorage.setItem('programme-announcement', JSON.stringify({
+      text: this.activeAnnouncement,
+      durationMs: (this.announcementDuration || 2) * 60000
+    }));
+    // Hide after duration
+    if (this.announcementTimeout) clearTimeout(this.announcementTimeout);
+    this.announcementTimeout = setTimeout(() => {
+      this.activeAnnouncement = null;
+      localStorage.removeItem('programme-announcement');
+    }, (this.announcementDuration || 2) * 60000);
+    this.announcementText = '';
+  }
 }

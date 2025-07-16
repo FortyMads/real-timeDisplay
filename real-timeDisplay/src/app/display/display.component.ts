@@ -39,6 +39,11 @@ export class DisplayComponent implements OnInit, OnDestroy {
   /** Timer interval for updating current activity */
   private timer: any;
 
+  /** Current announcement text */
+  announcement: string = '';
+  /** Announcement expiration timestamp */
+  announcementExpires: number = 0;
+
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events (across tabs)
     window.addEventListener('storage', this.handleStorageEvent);
@@ -48,13 +53,19 @@ export class DisplayComponent implements OnInit, OnDestroy {
 
   /**
    * On component init, load schedule and start timer
+   * Also listen for announcements in preview iframe
    */
   ngOnInit() {
     this.loadScheduleFromLocalStorage();
     this.updateCurrentActivity();
-    this.timer = setInterval(() => this.updateCurrentActivity(), 1000);
+    this.timer = setInterval(() => {
+      this.updateCurrentActivity();
+      this.checkAnnouncementExpiry();
+    }, 1000);
     // Save window position on move/close
     window.addEventListener('beforeunload', this.saveWindowPosition);
+    // Listen for announcement events (main window and iframe)
+    window.addEventListener('storage', this.handleAnnouncementStorageEvent);
   }
 
   /**
@@ -65,6 +76,7 @@ export class DisplayComponent implements OnInit, OnDestroy {
     window.removeEventListener('storage', this.handleStorageEvent);
     window.removeEventListener('message', this.handleAdminMessage);
     window.removeEventListener('beforeunload', this.saveWindowPosition);
+    window.removeEventListener('storage', this.handleAnnouncementStorageEvent);
   }
 
   /**
@@ -223,6 +235,30 @@ export class DisplayComponent implements OnInit, OnDestroy {
       }));
     } catch (e) {
       // Ignore
+    }
+  }
+
+  /**
+   * Listen for new announcements via localStorage (for preview iframe)
+   */
+  handleAnnouncementStorageEvent = (event: StorageEvent) => {
+    if (event.key === 'programme-announcement') {
+      const raw = localStorage.getItem('programme-announcement');
+      if (raw) {
+        const data = JSON.parse(raw);
+        this.announcement = data.text;
+        this.announcementExpires = Date.now() + (data.durationMs || 120000); // default 2 min
+      }
+    }
+  }
+
+  /**
+   * Check if announcement expired and clear overlay
+   */
+  checkAnnouncementExpiry() {
+    if (this.announcement && Date.now() > this.announcementExpires) {
+      this.announcement = '';
+      this.announcementExpires = 0;
     }
   }
 }
