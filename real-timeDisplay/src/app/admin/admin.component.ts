@@ -83,8 +83,8 @@ export class AdminComponent implements OnDestroy, OnInit {
   activeAnnouncement: string | null = null;
   announcementTimeout: any = null;
 
-  // Announcement duration in minutes (default 2)
-  announcementDuration: number = 2;
+  // Announcement duration in minutes (default 1)
+  announcementDuration: number | null = null;
 
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events for real-time refresh
@@ -528,6 +528,8 @@ export class AdminComponent implements OnDestroy, OnInit {
     this.inputText = text;
     this.parseAndStoreSchedule();
     this.updateFutureItems();
+    // Force refresh for all displays so the current activity updates immediately
+    localStorage.setItem('programme-refresh', Date.now().toString());
     this.showEditProgrammeModal = false;
     this.showConfirmationPopup('Programme loaded!');
   }
@@ -587,10 +589,10 @@ export class AdminComponent implements OnDestroy, OnInit {
   sendAnnouncement() {
     if (!this.announcementText.trim()) return;
     this.activeAnnouncement = this.announcementText.trim();
-    // Use custom duration if provided, else default to 2 minutes
+    // Use custom duration if provided, else default to 1 minute
     const durationMs = (this.announcementDuration && this.announcementDuration > 0)
       ? this.announcementDuration * 60000
-      : 120000;
+      : 60000;
     localStorage.setItem('programme-announcement', JSON.stringify({
       text: this.activeAnnouncement,
       durationMs
@@ -602,5 +604,13 @@ export class AdminComponent implements OnDestroy, OnInit {
       localStorage.removeItem('programme-announcement');
     }, durationMs);
     this.announcementText = '';
+    this.announcementDuration = null;
+  }
+
+  deleteProgramme(name: string) {
+    if (!confirm(`Delete programme '${name}'? This cannot be undone.`)) return;
+    localStorage.removeItem('programme-' + name);
+    this.loadSavedProgrammes();
+    this.showConfirmationPopup('Programme deleted!');
   }
 }
