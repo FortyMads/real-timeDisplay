@@ -66,10 +66,17 @@ export class AdminComponent implements OnDestroy, OnInit {
   // List of saved programmes (filenames)
   savedProgrammes: string[] = [];
 
-  // For editing loaded programme
-  showEditProgrammeModal: boolean = false;
-  editProgrammeItems: Programme[] = [];
-  editProgrammeName: string = '';
+  // Default sample programmes to populate localStorage if none exist
+  defaultProgrammes: { name: string; data: string }[] = [
+    {
+      name: 'Morning Routine',
+      data: 'Breakfast;07:00;30\nExercise;07:30;45\nShower;08:15;15\nCommute;08:30;30'
+    },
+    {
+      name: 'Conference Day',
+      data: 'Opening Remarks;09:00;15\nKeynote;09:15;45\nBreak;10:00;15\nSession 1;10:15;60\nLunch;11:15;60'
+    }
+  ];
 
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events for real-time refresh
@@ -77,6 +84,7 @@ export class AdminComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
+    this.populateDefaultProgrammes();
     this.loadSavedProgrammes();
   }
 
@@ -552,4 +560,19 @@ export class AdminComponent implements OnDestroy, OnInit {
   toggleFullscreenOnDisplays() {
     window.postMessage({ action: 'toggleFullScreen' }, '*');
   }
+
+  // Populate localStorage with default sample programmes if none exist
+  populateDefaultProgrammes() {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('programme-'));
+    if (keys.length === 0) {
+      this.defaultProgrammes.forEach(prog => {
+        localStorage.setItem('programme-' + prog.name, prog.data);
+      });
+    }
+  }
+
+  // For editing loaded programme (add missing properties)
+  showEditProgrammeModal: boolean = false;
+  editProgrammeItems: Programme[] = [];
+  editProgrammeName: string = '';
 }
