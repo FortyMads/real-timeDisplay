@@ -587,17 +587,20 @@ export class AdminComponent implements OnDestroy, OnInit {
   sendAnnouncement() {
     if (!this.announcementText.trim()) return;
     this.activeAnnouncement = this.announcementText.trim();
-    // Send announcement to display via localStorage
+    // Use custom duration if provided, else default to 2 minutes
+    const durationMs = (this.announcementDuration && this.announcementDuration > 0)
+      ? this.announcementDuration * 60000
+      : 120000;
     localStorage.setItem('programme-announcement', JSON.stringify({
       text: this.activeAnnouncement,
-      durationMs: (this.announcementDuration || 2) * 60000
+      durationMs
     }));
     // Hide after duration
     if (this.announcementTimeout) clearTimeout(this.announcementTimeout);
     this.announcementTimeout = setTimeout(() => {
       this.activeAnnouncement = null;
       localStorage.removeItem('programme-announcement');
-    }, (this.announcementDuration || 2) * 60000);
+    }, durationMs);
     this.announcementText = '';
   }
 }

@@ -180,7 +180,8 @@
     <h3>Announcements</h3>
     <form (ngSubmit)="sendAnnouncement()" style="margin-bottom: 1.2rem; display: flex; gap: 1rem; align-items: flex-end;">
       <input type="text" [(ngModel)]="announcementText" name="announcementText" placeholder="Enter announcement..." required style="min-width: 280px; font-size: 1.1rem; padding: 0.6rem; border-radius: 6px; border: 1px solid #1976d2;" />
-      <button type="submit" style="background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer;">Send</button>
+      <input type="number" [(ngModel)]="announcementDuration" name="announcementDuration" min="1" placeholder="Duration (min, optional)" style="width: 120px; font-size: 1.1rem; padding: 0.6rem; border-radius: 6px; border: 1px solid #1976d2;" />
+      <button type="submit" style="background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Send Announcement</button>
     </form>
     <div *ngIf="activeAnnouncement" class="active-announcement" style="background: #23283a; color: #fff; padding: 1.2rem 2rem; border-radius: 10px; font-size: 1.25rem; font-weight: 700; box-shadow: 0 2px 12px rgba(30,64,175,0.18); margin-bottom: 1.2rem; text-align: center;">
       {{ activeAnnouncement }}

@@ -18,8 +18,8 @@ This project is a real-time schedule display and admin control system, designed 
 ## Core Features
 
 - **Real-time sync**: Admin and display windows stay in sync using `localStorage` events and `postMessage`.
-- **Admin UI**: Add, edit, skip, and end programmes; open display in new window; control fullscreen remotely; download/upload schedule.
-- **Display UI**: Professional, fullscreen-friendly, auto-updating, with large time and subtle title.
+- **Admin UI**: Add, edit, skip, and end programmes; open display in new window; control fullscreen remotely; download/upload schedule; send announcements.
+- **Display UI**: Professional, fullscreen-friendly, auto-updating, with large time and subtle title. Announcement overlay appears for a set duration without interrupting the timer.
 - **Persistent display position**: Remembers last display window position.
 - **Modern, responsive design**: Clean, accessible, and mobile-friendly.
 
@@ -27,7 +27,7 @@ This project is a real-time schedule display and admin control system, designed 
 
 ## Real-Time Sync Architecture
 
-- **localStorage events**: Schedule changes are written to localStorage; all open windows listen for `storage` events to update.
+- **localStorage events**: Schedule changes and announcements are written to localStorage; all open windows listen for `storage` events to update.
 - **postMessage**: Used for fullscreen control and cross-window communication.
 - **Display position**: Saved to localStorage on move/close, reused when opening display.
 
@@ -35,10 +35,11 @@ This project is a real-time schedule display and admin control system, designed 
 
 ## Admin UI Details
 
-- **Tabs**: Input, Schedule, Current Programme
+- **Tabs**: Input, Schedule, Current Programme, Announcements
 - **Input**: Add via form, paste, or file upload
 - **Schedule**: View, download as text, status tracking
 - **Current**: See current item, edit inline, skip, end now, preview display, open/remote fullscreen
+- **Announcements**: Send announcement text and duration; overlays on all display windows for the set time, timer continues in background
 
 ---
 
@@ -46,6 +47,7 @@ This project is a real-time schedule display and admin control system, designed 
 
 - **Large, bold time**: Fills 3/4 of screen
 - **Small, subtle title**: For context
+- **Announcement overlay**: Covers timer for set duration, timer continues running
 - **Fullscreen icon**: Top-right, for manual fullscreen
 - **No controls visible to audience**
 
