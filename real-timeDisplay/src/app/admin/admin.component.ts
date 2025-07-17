@@ -89,6 +89,19 @@ export class AdminComponent implements OnDestroy, OnInit {
   constructor(private sharedSchedule: SharedScheduleService) {
     // Listen for storage events for real-time refresh
     window.addEventListener('storage', this.handleStorageEvent);
+    // Listen for fullscreen confirmation from display windows
+    window.addEventListener('message', this.handleDisplayMessage);
+  }
+
+  // Handle messages from display windows (fullscreen confirmation)
+  handleDisplayMessage = (event: MessageEvent) => {
+    if (event.data && event.data.type === 'fullscreenStatus') {
+      if (event.data.status === 'entered') {
+        this.showConfirmationPopup('Display entered fullscreen.');
+      } else if (event.data.status === 'exited') {
+        this.showConfirmationPopup('Display exited fullscreen.');
+      }
+    }
   }
 
   ngOnInit() {
@@ -141,12 +154,19 @@ export class AdminComponent implements OnDestroy, OnInit {
   parseAndStoreSchedule(): void {
     this.schedule = [];
     const lines = this.inputText.split('\n');
+    let lastEndDate: Date | null = null;
     for (const line of lines) {
       const parts = line.split(';');
       if (parts.length === 3) {
-        const startTime = parts[1].trim();
         const duration = parts[2].trim();
-        const startDate = this.parseStartTime(startTime);
+        let startDate: Date;
+        if (lastEndDate) {
+          startDate = new Date(lastEndDate);
+        } else {
+          const now = new Date();
+          startDate = new Date(now);
+        }
+        const startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
         const endDate = this.addDuration(startDate, duration);
         this.schedule.push({
           title: parts[0].trim(),
@@ -155,6 +175,7 @@ export class AdminComponent implements OnDestroy, OnInit {
           startDate,
           endDate
         });
+        lastEndDate = endDate;
       }
     }
     this.sharedSchedule.setSchedule(this.schedule);
@@ -253,14 +274,20 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   // Add a programme from the beginner-friendly form
   addProgramme(): void {
-    if (!this.newTitle || !this.newStartTime || !this.newDuration) {
+    if (!this.newTitle || !this.newDuration) {
       this.showConfirmationPopup('Please fill in all fields.');
       return;
     }
-    // Format start time as HH:mm
-    const startTime = this.newStartTime;
+    // Always schedule after last activity
+    let startDate: Date;
+    if (this.schedule.length > 0) {
+      startDate = this.schedule[this.schedule.length - 1].endDate!;
+    } else {
+      const now = new Date();
+      startDate = new Date(now);
+    }
+    const startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
     const duration = this.newDuration.toString();
-    const startDate = this.parseStartTime(startTime);
     const endDate = this.addDuration(startDate, duration);
     this.schedule.push({
       title: this.newTitle,
@@ -288,6 +315,7 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.editStartTime = prog.startTime;
       this.editDuration = prog.duration;
       this.editingCurrent = true;
+      // Do NOT stop or restart timer; timer continues running
     }
   }
 
@@ -295,16 +323,21 @@ export class AdminComponent implements OnDestroy, OnInit {
     const now = new Date();
     const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
     if (idx !== -1) {
+      // Update current activity
       this.schedule[idx].title = this.editTitle;
       this.schedule[idx].startTime = this.editStartTime;
       this.schedule[idx].duration = this.editDuration;
-      // Recalculate startDate/endDate for current and following
       this.schedule[idx].startDate = this.parseStartTime(this.editStartTime);
       this.schedule[idx].endDate = this.addDuration(this.schedule[idx].startDate!, this.editDuration);
-      // Update following items' start/end
+      // Sequentially schedule all following activities
+      let prevEnd = this.schedule[idx].endDate;
       for (let i = idx + 1; i < this.schedule.length; i++) {
-        this.schedule[i].startDate = this.schedule[i-1].endDate;
+        this.schedule[i].startDate = new Date(prevEnd!);
+        this.schedule[i].startTime = `${prevEnd!.getHours().toString().padStart(2, '0')}:${prevEnd!.getMinutes().toString().padStart(2, '0')}`;
         this.schedule[i].endDate = this.addDuration(this.schedule[i].startDate!, this.schedule[i].duration);
+        if (this.schedule[i].endDate) {
+          prevEnd = this.schedule[i].endDate as Date;
+        }
       }
       this.sharedSchedule.setSchedule(this.schedule);
       localStorage.setItem('programme-refresh', Date.now().toString());
@@ -321,15 +354,23 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   // Add another activity from the multi-activity modal
   addAnotherActivity() {
-    if (!this.multiTitle || !this.multiStartTime || !this.multiDuration) {
+    if (!this.multiTitle || !this.multiDuration) {
       this.showConfirmationPopup('Please fill in all fields.');
       return;
     }
-    const startDate = this.parseStartTime(this.multiStartTime);
+    // Always schedule after last activity
+    let startDate: Date;
+    if (this.schedule.length > 0) {
+      startDate = this.schedule[this.schedule.length - 1].endDate!;
+    } else {
+      const now = new Date();
+      startDate = new Date(now);
+    }
+    const startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
     const endDate = this.addDuration(startDate, this.multiDuration.toString());
     this.schedule.push({
       title: this.multiTitle,
-      startTime: this.multiStartTime,
+      startTime,
       duration: this.multiDuration.toString(),
       startDate,
       endDate
@@ -519,9 +560,22 @@ export class AdminComponent implements OnDestroy, OnInit {
   // Confirm and load edited programme
   confirmEditProgramme() {
     // Validate edited items
-    if (this.editProgrammeItems.some(item => !item.title || !item.startTime || !item.duration)) {
+    if (this.editProgrammeItems.some(item => !item.title || !item.duration)) {
       this.showConfirmationPopup('Please fill in all fields for every activity.');
       return;
+    }
+    // Set start time of first item to current time, and schedule all after previous
+    const now = new Date();
+    let currentDate = new Date(now);
+    this.editProgrammeItems[0].startTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    this.editProgrammeItems[0].startDate = new Date(currentDate);
+    this.editProgrammeItems[0].endDate = this.addDuration(currentDate, this.editProgrammeItems[0].duration);
+    // Recalculate start/end for all subsequent items
+    for (let i = 1; i < this.editProgrammeItems.length; i++) {
+      currentDate = this.editProgrammeItems[i-1].endDate!;
+      this.editProgrammeItems[i].startTime = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
+      this.editProgrammeItems[i].startDate = new Date(currentDate);
+      this.editProgrammeItems[i].endDate = this.addDuration(currentDate, this.editProgrammeItems[i].duration);
     }
     // Convert to text and process
     const text = this.editProgrammeItems.map(item => `${item.title};${item.startTime};${item.duration}`).join('\n');
@@ -585,6 +639,11 @@ export class AdminComponent implements OnDestroy, OnInit {
   showEditProgrammeModal: boolean = false;
   editProgrammeItems: Programme[] = [];
   editProgrammeName: string = '';
+
+  // Add a blank activity to the edit modal
+  addEditProgrammeActivity() {
+    this.editProgrammeItems.push({ title: '', startTime: '', duration: '' });
+  }
 
   sendAnnouncement() {
     if (!this.announcementText.trim()) return;

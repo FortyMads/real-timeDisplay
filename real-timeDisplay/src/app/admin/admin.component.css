@@ -1,6 +1,11 @@
 body, html {
   background: linear-gradient(135deg, #e3f0ff 0%, #fafcff 100%);
   min-height: 100vh;
+.current-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .admin-container {
   max-width: 900px;
@@ -182,14 +187,29 @@ button:hover {
   text-align: left;
 }
 .schedule-table th {
-  background: #20243a;
-  color: #8ec6ff;
-  font-weight: 600;
-  font-size: 1.05rem;
+.current-card {
+  background: #23283a;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
 }
-.schedule-table td {
-  border-top: 1px solid #2a2e3e;
-  font-size: 1rem;
+.announcements-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.active-announcement {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto 1.2rem auto;
+  box-sizing: border-box;
+}
 }
 .admin-tabs {
   display: flex;

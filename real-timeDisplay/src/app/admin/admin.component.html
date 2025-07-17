@@ -2,8 +2,8 @@
   <h2 class="admin-title" style="font-size: 2.8rem; font-weight: 900; letter-spacing: 1.5px; margin-bottom: 2.2rem; color: #1976d2; text-align: center;">Activity Admin Panel</h2>
 
   <div class="admin-tabs">
-    <button [class.active]="selectedTab === 'input'" (click)="selectedTab = 'input'">Input Activity</button>
     <button [class.active]="selectedTab === 'schedule'" (click)="selectedTab = 'schedule'">View Programme</button>
+    <button [class.active]="selectedTab === 'input'" (click)="selectedTab = 'input'">Input Activity</button>
     <button [class.active]="selectedTab === 'current'" (click)="selectedTab = 'current'">Current Activity</button>
     <button [class.active]="selectedTab === 'announcements'" (click)="selectedTab = 'announcements'">Announcements</button>
   </div>
@@ -127,9 +127,12 @@
   <!-- Current Programme Tab -->
   <div *ngIf="selectedTab === 'current'" class="current-section">
     <div class="current-card" style="background: #23283a; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.10); padding: 2rem 2.5rem; display: flex; flex-direction: column; align-items: center;">
-      <div class="current-title" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.2rem; letter-spacing: 0.5px;">
-        Current: <span>{{ currentTitle }}</span>
-        <button *ngIf="!editingCurrent && currentTitle !== 'No active programme'" (click)="startEditCurrent()" class="edit-btn" style="margin-left: 1rem; font-size: 1rem; background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 0.9rem; cursor: pointer;">Edit</button>
+      <div class="current-title" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.2rem; letter-spacing: 0.5px; display: flex; flex-direction: column; align-items: center;">
+        <span style="font-size: 1.15rem; margin-bottom: 0.5rem;">Current: <span>{{ currentTitle }}</span>
+          <button *ngIf="!editingCurrent && currentTitle !== 'No active programme'" (click)="startEditCurrent()" class="edit-btn" style="margin-left: 1rem; font-size: 1rem; background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 0.9rem; cursor: pointer;">Edit</button>
+        </span>
+        <span style="font-size: 3.2rem; font-weight: 900; color: #43a047; letter-spacing: 2px; margin-bottom: 0.5rem;">{{ remainingTime }}</span>
+      </div>
       </div>
       <div *ngIf="editingCurrent" class="edit-current-form" style="margin-bottom: 1.5rem; background: #181c24; border-radius: 8px; padding: 1.2rem 1.5rem; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">
         <form (ngSubmit)="saveEditCurrent()" style="display: flex; flex-direction: row; gap: 1.2rem; align-items: flex-end; flex-wrap: wrap;">
@@ -197,10 +200,11 @@
       <form #editForm="ngForm" style="display: flex; flex-direction: column; gap: 1.2rem;">
         <div *ngFor="let item of editProgrammeItems; let i = index" style="display: flex; gap: 1rem; align-items: center;">
           <input type="text" [(ngModel)]="editProgrammeItems[i].title" name="editTitle{{i}}" required placeholder="Title" style="min-width: 120px;" />
-          <input type="time" [(ngModel)]="editProgrammeItems[i].startTime" name="editStartTime{{i}}" required style="min-width: 100px;" />
+         <input type="time" [(ngModel)]="editProgrammeItems[i].startTime" name="editStartTime{{i}}" style="min-width: 100px;" disabled />
           <input type="text" [(ngModel)]="editProgrammeItems[i].duration" name="editDuration{{i}}" required placeholder="Duration (mm or mm:ss)" style="min-width: 80px;" />
           <button type="button" (click)="editProgrammeItems.splice(i, 1)" style="background: #b71c1c; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 0.8rem; font-size: 1rem; cursor: pointer;">Delete</button>
         </div>
+       <button type="button" (click)="addEditProgrammeActivity()" style="margin-top: 1rem; background: #388e3c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; align-self: flex-start;">Add Activity</button>
       </form>
       <div style="display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end;">
         <button (click)="confirmEditProgramme()" style="background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer;">Confirm & Load</button>
@@ -208,4 +212,3 @@
       </div>
     </div>
   </div>
-</div>
