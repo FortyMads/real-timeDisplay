@@ -180,17 +180,28 @@
   </div>
 
   <!-- Announcements Tab -->
-  <div *ngIf="selectedTab === 'announcements'" class="admin-card announcements-section">
-    <h3>Announcements</h3>
-    <form (ngSubmit)="sendAnnouncement()">
-      <input type="text" [(ngModel)]="announcementText" name="announcementText" placeholder="Enter announcement..." required />
-      <input type="number" [(ngModel)]="announcementDuration" name="announcementDuration" min="1" placeholder="Duration (min, optional; default 1)" />
-      <button type="submit">Send Announcement</button>
-    </form>
-    <div *ngIf="activeAnnouncement" class="active-announcement">
-      {{ activeAnnouncement }}
+  <div *ngIf="selectedTab === 'announcements'" class="admin-card announcements-section pro-announcement-card">
+    <div class="announcement-header">
+      <h3><span class="icon">📢</span> Announcements</h3>
+      <p class="announcement-desc">Send a message to all displays. Optionally set a duration (in minutes).</p>
     </div>
-    <div *ngIf="!activeAnnouncement" class="no-active-announcement">No active announcement.</div>
+    <form (ngSubmit)="sendAnnouncement()" class="announcement-form">
+      <div class="form-group">
+        <input type="text" [(ngModel)]="announcementText" name="announcementText" placeholder="Enter announcement..." required class="input-field" maxlength="120" />
+      </div>
+      <div class="form-group duration-group">
+        <input type="number" [(ngModel)]="announcementDuration" name="announcementDuration" min="1" placeholder="Duration (min, default 1)" class="input-field duration-input" />
+      </div>
+      <button type="submit" class="send-announcement-btn">Send Announcement</button>
+    </form>
+    <div class="announcement-status">
+      <div *ngIf="activeAnnouncement" class="active-announcement pro-active-announcement">
+        <span class="icon">✅</span> {{ activeAnnouncement }}
+      </div>
+      <div *ngIf="!activeAnnouncement" class="no-active-announcement pro-no-active-announcement">
+        <span class="icon">ℹ️</span> No active announcement.
+      </div>
+    </div>
   </div>
 
   <!-- Edit Programme Modal -->
