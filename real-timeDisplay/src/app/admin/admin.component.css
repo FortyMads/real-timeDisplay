@@ -2,75 +2,145 @@ body, html {
   background: linear-gradient(135deg, #e3f0ff 0%, #fafcff 100%);
   min-height: 100vh;
   font-family: 'Segoe UI', Arial, sans-serif;
-  color: #23283a;
-}
 
-/* Glassmorphism effect for main container */
-.admin-container {
-  max-width: 950px;
-  margin: 2.5rem auto;
-  padding: 2.5rem 2rem;
-  background: rgba(24, 28, 36, 0.92);
+/* Professional Announcements Tab Styles */
+.pro-announcement-card {
+  margin-top: 2rem;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  background: rgba(255,255,255,0.18);
   border-radius: 20px;
-  box-shadow: 0 8px 40px rgba(25, 118, 210, 0.13), 0 1.5px 8px rgba(0,0,0,0.10);
-  color: #f3f3f3;
-  backdrop-filter: blur(8px) saturate(1.2);
-  border: 1.5px solid rgba(30,64,175,0.10);
-}
-
-.admin-title {
-  text-align: center;
-  font-size: 2.6rem;
-  margin-bottom: 2.5rem;
-  letter-spacing: 1.5px;
-  font-weight: 900;
-  color: #1976d2;
-  text-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
-}
-
-.admin-card {
-  background: rgba(35, 40, 58, 0.98);
-  border-radius: 16px;
-  padding: 2rem 2.5rem;
-  margin-bottom: 2.5rem;
-  box-shadow: 0 4px 24px rgba(30,64,175,0.13);
-  border: 1.5px solid rgba(30,64,175,0.08);
-}
-
-.form-group {
+  box-shadow: 0 8px 32px rgba(30,64,175,0.13);
+  backdrop-filter: blur(12px);
   display: flex;
   flex-direction: column;
-  min-width: 160px;
+  align-items: center;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.announcement-header {
+  width: 100%;
+  text-align: center;
   margin-bottom: 1.2rem;
 }
-
-.input-field {
-  border-radius: 8px;
-  border: 1.5px solid #8ec6ff;
-  background: #23283a;
-  color: #f3f3f3;
+.announcement-header h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #1976d2;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.5px;
+}
+.announcement-header .icon {
+  font-size: 1.3rem;
+  margin-right: 0.3rem;
+}
+.announcement-desc {
+  color: #5a6b8a;
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
+}
+.announcement-form {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.announcement-form .form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+}
+.announcement-form .duration-group {
+  min-width: 120px;
+}
+.announcement-form .input-field {
   padding: 0.7rem 1rem;
+  border-radius: 10px;
+  border: 1.5px solid #b0c4de;
   font-size: 1.08rem;
-  margin-top: 0.3rem;
-  transition: border 0.2s, box-shadow 0.2s;
+  background: rgba(255,255,255,0.85);
+  outline: none;
+  transition: border 0.2s;
   box-shadow: 0 1px 4px rgba(30,64,175,0.06);
 }
-.input-field:focus {
+.announcement-form .input-field:focus {
   border: 1.5px solid #1976d2;
-  outline: none;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.13);
 }
-
-.add-btn, .add-activity-btn, .save-btn, .skip-btn, .fullscreen-btn, .open-display-btn {
+.announcement-form .duration-input {
+  width: 100px;
+}
+.send-announcement-btn {
   background: linear-gradient(90deg, #1976d2 60%, #43a047 100%);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 0.7rem 1.7rem;
+  border-radius: 10px;
+  padding: 0.7rem 2.2rem;
   font-size: 1.08rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30,64,175,0.10);
+  transition: background 0.2s, box-shadow 0.2s;
+  margin-left: 0.5rem;
+}
+.send-announcement-btn:hover {
+  background: linear-gradient(90deg, #1251a3 60%, #388e3c 100%);
+  box-shadow: 0 4px 16px rgba(30,64,175,0.13);
+}
+.announcement-status {
+  width: 100%;
   margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pro-active-announcement {
+  background: linear-gradient(90deg, #e3f2fd 60%, #e8f5e9 100%);
+  color: #1976d2;
+  font-weight: 700;
+  padding: 1.1rem 1.7rem;
+  border-radius: 12px;
+  margin-bottom: 0.7rem;
+  font-size: 1.13rem;
+  box-shadow: 0 2px 12px rgba(30,64,175,0.10);
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.pro-no-active-announcement {
+  color: #888;
+  font-size: 1.08rem;
+  margin-top: 0.7rem;
+  background: rgba(255,255,255,0.7);
+  border-radius: 10px;
+  padding: 0.7rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+@media (max-width: 600px) {
+  .pro-announcement-card {
+    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+    max-width: 98vw;
+  }
+  .announcement-form {
+    flex-direction: column;
+    gap: 0.7rem;
+    align-items: stretch;
+  }
+  .announcement-form .form-group,
+  .announcement-form .duration-group {
+    min-width: 0;
+    width: 100%;
+  }
+  .send-announcement-btn {
+    width: 100%;
+    margin-left: 0;
+  }
+}
   box-shadow: 0 2px 12px rgba(30,64,175,0.10);
   transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
 }
