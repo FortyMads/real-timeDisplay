@@ -68,26 +68,6 @@ export class DisplayComponent implements OnInit, OnDestroy {
     window.addEventListener('beforeunload', this.saveWindowPosition);
     // Listen for announcement events (main window and iframe)
     window.addEventListener('storage', this.handleAnnouncementStorageEvent);
-    
-    // Listen for fullscreen changes to remember state
-    document.addEventListener('fullscreenchange', this.handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', this.handleFullscreenChange);
-    
-    // Auto-fullscreen if opened in a new window (detected by URL parameter or window name)
-    this.checkAutoFullscreen();
-  }
-
-  /**
-   * Handle fullscreen state changes
-   */
-  handleFullscreenChange = () => {
-    const isFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
-    console.log('[Display] Fullscreen state changed:', isFullscreen);
-    
-    // Save the fullscreen preference
-    const prefs = this.getDisplayPreferences();
-    prefs.alwaysFullscreen = isFullscreen;
-    this.saveDisplayPreferences(prefs);
   }
 
   /**
@@ -99,8 +79,6 @@ export class DisplayComponent implements OnInit, OnDestroy {
     window.removeEventListener('message', this.handleAdminMessage);
     window.removeEventListener('beforeunload', this.saveWindowPosition);
     window.removeEventListener('storage', this.handleAnnouncementStorageEvent);
-    document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
-    document.removeEventListener('webkitfullscreenchange', this.handleFullscreenChange);
   }
 
   /**
@@ -148,30 +126,13 @@ export class DisplayComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle localStorage changes for real-time schedule sync and fullscreen commands
+   * Handle localStorage changes for real-time schedule sync
    */
   handleStorageEvent = (event: StorageEvent) => {
     console.log('[Display] Storage event fired:', event);
     if (event.key === 'programme-schedule' || event.key === 'programme-refresh') {
       this.loadScheduleFromLocalStorage();
       this.updateCurrentActivity();
-    } else if (event.key === 'fullscreen-command') {
-      // Handle fullscreen toggle command from admin
-      const command = JSON.parse(event.newValue || '{}');
-      console.log('[Display] Received fullscreen command:', command);
-      
-      if (command.action === 'toggle') {
-        if (!document.fullscreenElement) {
-          this.goFullscreen();
-        } else {
-          document.exitFullscreen();
-        }
-      }
-      
-      // Clear the command after processing
-      setTimeout(() => {
-        localStorage.removeItem('fullscreen-command');
-      }, 1000);
     }
   }
 
@@ -318,158 +279,6 @@ export class DisplayComponent implements OnInit, OnDestroy {
     if (this.announcement && Date.now() > this.announcementExpires) {
       this.announcement = '';
       this.announcementExpires = 0;
-    }
-  }
-
-  /**
-   * Check if this window should auto-fullscreen (new window or URL parameter)
-   */
-  checkAutoFullscreen() {
-    setTimeout(() => {
-      // Get stored display preferences
-      const displayPrefs = this.getDisplayPreferences();
-      
-      // Check if opened in new window by checking URL parameters or window properties
-      const urlParams = new URLSearchParams(window.location.search);
-      const isNewWindow = urlParams.get('fullscreen') === 'true' || 
-                         window.name === 'displayWindow' ||
-                         window.opener !== null; // Has parent window
-
-      // Also check if this display should always be fullscreen
-      const shouldAutoFullscreen = isNewWindow || displayPrefs.alwaysFullscreen;
-
-      if (shouldAutoFullscreen && !document.fullscreenElement) {
-        console.log('[Display] Auto-entering fullscreen for display window');
-        this.attemptFullscreenWithFallback();
-      }
-
-      // Position window on correct monitor if preferences exist
-      if (displayPrefs.preferredMonitor && typeof window.moveTo === 'function') {
-        this.positionOnPreferredMonitor(displayPrefs);
-      }
-    }, 1000); // Longer delay to ensure DOM and browser are ready
-  }
-
-  /**
-   * Get stored display preferences from localStorage
-   */
-  getDisplayPreferences() {
-    try {
-      const stored = localStorage.getItem('display-preferences');
-      return stored ? JSON.parse(stored) : {
-        alwaysFullscreen: true, // Default to always fullscreen
-        preferredMonitor: null,
-        windowPosition: null
-      };
-    } catch (e) {
-      return {
-        alwaysFullscreen: true,
-        preferredMonitor: null,
-        windowPosition: null
-      };
-    }
-  }
-
-  /**
-   * Save display preferences to localStorage
-   */
-  saveDisplayPreferences(prefs: any) {
-    try {
-      localStorage.setItem('display-preferences', JSON.stringify(prefs));
-    } catch (e) {
-      console.warn('[Display] Could not save display preferences');
-    }
-  }
-
-  /**
-   * Attempt fullscreen with multiple fallback methods
-   */
-  attemptFullscreenWithFallback() {
-    console.log('[Display] Attempting fullscreen with browser compatibility checks');
-    
-    // Method 1: Standard Fullscreen API
-    const elem = document.getElementById('displayContainer') || document.documentElement;
-    
-    if (document.fullscreenEnabled || (document as any).webkitFullscreenEnabled) {
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen().catch(err => {
-          console.warn('[Display] Standard fullscreen failed:', err);
-          this.tryWebkitFullscreen(elem);
-        });
-      } else {
-        this.tryWebkitFullscreen(elem);
-      }
-    } else {
-      console.warn('[Display] Fullscreen not supported, using viewport fullscreen');
-      this.simulateFullscreen();
-    }
-
-    // Save that user prefers fullscreen
-    const prefs = this.getDisplayPreferences();
-    prefs.alwaysFullscreen = true;
-    this.saveDisplayPreferences(prefs);
-  }
-
-  /**
-   * Try webkit fullscreen for Safari
-   */
-  tryWebkitFullscreen(elem: any) {
-    if (elem.webkitRequestFullscreen) {
-      elem.webkitRequestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-      elem.mozRequestFullScreen();
-    } else if (elem.msRequestFullscreen) {
-      elem.msRequestFullscreen();
-    } else {
-      console.warn('[Display] No fullscreen method available, simulating');
-      this.simulateFullscreen();
-    }
-  }
-
-  /**
-   * Simulate fullscreen by maximizing viewport
-   */
-  simulateFullscreen() {
-    // Make the display take full viewport
-    document.body.style.margin = '0';
-    document.body.style.padding = '0';
-    document.body.style.overflow = 'hidden';
-    
-    const container = document.getElementById('displayContainer');
-    if (container) {
-      container.style.position = 'fixed';
-      container.style.top = '0';
-      container.style.left = '0';
-      container.style.width = '100vw';
-      container.style.height = '100vh';
-      container.style.zIndex = '9999';
-    }
-
-    // Try to hide browser UI if possible
-    if (window.outerHeight) {
-      window.resizeTo(screen.width, screen.height);
-    }
-  }
-
-  /**
-   * Position window on preferred monitor
-   */
-  positionOnPreferredMonitor(prefs: any) {
-    if (prefs.preferredMonitor && window.moveTo && window.resizeTo) {
-      try {
-        const monitor = prefs.preferredMonitor;
-        window.moveTo(monitor.x, monitor.y);
-        window.resizeTo(monitor.width, monitor.height);
-        
-        // After positioning, try fullscreen again
-        setTimeout(() => {
-          if (!document.fullscreenElement) {
-            this.attemptFullscreenWithFallback();
-          }
-        }, 500);
-      } catch (e) {
-        console.warn('[Display] Could not position on preferred monitor:', e);
-      }
     }
   }
 }

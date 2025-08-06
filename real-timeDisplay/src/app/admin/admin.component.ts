@@ -642,114 +642,16 @@ export class AdminComponent implements OnDestroy, OnInit {
   }
 
   openDisplayInNewWindow() {
-    // Try to detect secondary monitor and use it
-    this.detectAndUseSecondaryMonitor();
-  }
-
-  /**
-   * Detect secondary monitor and open display there, like EasyWorship
-   */
-  detectAndUseSecondaryMonitor() {
-    const screenWidth = screen.width;
-    const screenHeight = screen.height;
-    
-    // Get stored preferences
-    const prefs = this.getDisplayPreferences();
-    
-    // Calculate position for secondary monitor
-    // Most common setup: primary monitor at 0,0 and secondary to the right
-    let targetX = screenWidth; // Start on second monitor
-    let targetY = 0;
-    let targetWidth = screenWidth;
-    let targetHeight = screenHeight;
-    
-    // If we have stored preferences, use them
-    if (prefs.preferredMonitor) {
-      targetX = prefs.preferredMonitor.x;
-      targetY = prefs.preferredMonitor.y;
-      targetWidth = prefs.preferredMonitor.width;
-      targetHeight = prefs.preferredMonitor.height;
-    } else {
-      // Try to detect if we have multiple monitors
-      // If window can be moved beyond primary screen width, we likely have secondary monitor
-      const testWindow = window.open('about:blank', 'test', 'width=1,height=1,left=' + (screenWidth + 100) + ',top=100');
-      if (testWindow) {
-        // We can open windows on secondary monitor
-        testWindow.close();
-        // Store this as preferred monitor
-        prefs.preferredMonitor = {
-          x: screenWidth,
-          y: 0,
-          width: screenWidth,
-          height: screenHeight
-        };
-        this.saveDisplayPreferences(prefs);
-      } else {
-        // Fallback to primary monitor
-        targetX = 100;
-        targetY = 100;
-        targetWidth = Math.min(1200, screenWidth - 200);
-        targetHeight = Math.min(800, screenHeight - 200);
-      }
-    }
-
-    // Open the display window
-    const displayWindow = window.open(
-      '/display?fullscreen=true&autostart=true',
-      'displayWindow',
-      `width=${targetWidth},height=${targetHeight},left=${targetX},top=${targetY},menubar=no,toolbar=no,location=no,status=no,scrollbars=no`
+    const pos = JSON.parse(localStorage.getItem('displayWindowPos') || '{}');
+    const left = typeof pos.left === 'number' ? pos.left : 100;
+    const top = typeof pos.top === 'number' ? pos.top : 100;
+    const width = 900;
+    const height = 600;
+    window.open(
+      '/display',
+      '_blank',
+      `width=${width},height=${height},left=${left},top=${top}`
     );
-
-    // If successful, save the position
-    if (displayWindow) {
-      console.log('[Admin] Display window opened on secondary monitor');
-      
-      // Store this position for future use
-      setTimeout(() => {
-        try {
-          const pos = {
-            left: displayWindow.screenX || targetX,
-            top: displayWindow.screenY || targetY,
-            width: displayWindow.outerWidth || targetWidth,
-            height: displayWindow.outerHeight || targetHeight
-          };
-          localStorage.setItem('displayWindowPos', JSON.stringify(pos));
-        } catch (e) {
-          // Cross-origin restrictions may prevent access
-        }
-      }, 1000);
-    }
-  }
-
-  /**
-   * Get display preferences (shared with display component)
-   */
-  getDisplayPreferences() {
-    try {
-      const stored = localStorage.getItem('display-preferences');
-      return stored ? JSON.parse(stored) : {
-        alwaysFullscreen: true,
-        preferredMonitor: null,
-        windowPosition: null
-      };
-    } catch (e) {
-      return {
-        alwaysFullscreen: true,
-        preferredMonitor: null,
-        windowPosition: null
-      };
-    }
-  }
-
-  /**
-   * Save display preferences
-   */
-  saveDisplayPreferences(prefs: any) {
-    try {
-      localStorage.setItem('display-preferences', JSON.stringify(prefs));
-    } catch (e) {
-      console.warn('[Admin] Could not save display preferences');
-    }
   }
 
   downloadSchedule() {
@@ -908,31 +810,7 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   // Toggle fullscreen for all open display windows (not preview iframe)
   toggleFullscreenOnDisplays() {
-    console.log('[Admin] Sending fullscreen toggle command');
-    
-    // Method 1: Use localStorage to communicate with other windows/tabs
-    localStorage.setItem('fullscreen-command', JSON.stringify({
-      action: 'toggleFullScreen',
-      timestamp: Date.now()
-    }));
-    
-    // Method 2: Send to current window (for iframe preview)
     window.postMessage({ action: 'toggleFullScreen' }, '*');
-    
-    // Method 3: Try to send to all windows (if we have references)
-    try {
-      // Send message to any iframe in current page
-      const iframes = document.querySelectorAll('iframe');
-      iframes.forEach(iframe => {
-        if (iframe.contentWindow) {
-          iframe.contentWindow.postMessage({ action: 'toggleFullScreen' }, '*');
-        }
-      });
-    } catch (e) {
-      console.log('[Admin] Could not send to iframes:', e);
-    }
-    
-    this.showConfirmationPopup('Fullscreen toggle command sent to display windows');
   }
 
   // Populate localStorage with default sample programmes if none exist
@@ -981,22 +859,5 @@ export class AdminComponent implements OnDestroy, OnInit {
     localStorage.removeItem('programme-' + name);
     this.loadSavedProgrammes();
     this.showConfirmationPopup('Programme deleted!');
-  }
-
-  /**
-   * Toggle always fullscreen setting
-   */
-  toggleAlwaysFullscreen(event: any) {
-    const prefs = this.getDisplayPreferences();
-    prefs.alwaysFullscreen = event.target.checked;
-    this.saveDisplayPreferences(prefs);
-    
-    console.log('[Admin] Always fullscreen set to:', prefs.alwaysFullscreen);
-    
-    if (prefs.alwaysFullscreen) {
-      this.showConfirmationPopup('Display will now always start in fullscreen mode');
-    } else {
-      this.showConfirmationPopup('Display will start in windowed mode');
-    }
   }
 }

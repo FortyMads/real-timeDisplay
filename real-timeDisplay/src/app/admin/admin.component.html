@@ -181,18 +181,6 @@
         </div>
       </div>
       <button (click)="openDisplayInNewWindow()" class="open-display-btn" style="margin-top: 1.2rem; width: 220px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">Open Display in New Window</button>
-      
-      <!-- Display Settings -->
-      <div class="display-settings" style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
-        <h4 style="margin: 0 0 0.8rem 0; font-size: 0.9rem; color: #495057;">Display Settings</h4>
-        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #6c757d;">
-          <input type="checkbox" [checked]="getDisplayPreferences().alwaysFullscreen" (change)="toggleAlwaysFullscreen($event)" style="margin: 0;">
-          Always start displays in fullscreen (like EasyWorship)
-        </label>
-        <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #adb5bd;">
-          When enabled, new display windows will automatically enter fullscreen mode on secondary monitors.
-        </div>
-      </div>
     </div>
   </div>
 
