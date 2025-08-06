@@ -163,6 +163,11 @@
         <h4 style="margin-bottom: 0.7rem; color: #8ec6ff; font-size: 1.1rem; font-weight: 600; letter-spacing: 0.5px;">Mini Display Preview</h4>
         <iframe #miniDisplayIframe src="/display" width="320" height="180" style="border:1px solid #8ec6ff; background:#fff; overflow:hidden; display:block; border-radius: 6px;" scrolling="no"></iframe>
         <div class="admin-actions" style="margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1.1rem; width: 100%;">
+          <!-- Manual Activity Control Buttons -->
+          <div class="manual-controls" style="display: flex; flex-direction: row; gap: 1rem; margin-bottom: 1rem;">
+            <button class="start-next-btn" (click)="startNextActivity()" style="width: 140px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">Start Next</button>
+            <button class="end-current-btn" (click)="endCurrentActivity()" style="width: 140px; font-size: 1.08rem; background: #f57c00; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">End Current</button>
+          </div>
           <button class="end-now-btn" (click)="endNow()" style="width: 220px; font-size: 1.08rem;">End Now</button>
           <button class="fullscreen-btn" (click)="toggleFullscreenOnDisplays()" style="width: 220px; font-size: 1.08rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; margin-top: 0.7rem; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">Toggle Fullscreen on Display</button>
           <div class="skip-section" style="display: flex; flex-direction: row; align-items: center; gap: 0.7rem; justify-content: center; width: 100%;">

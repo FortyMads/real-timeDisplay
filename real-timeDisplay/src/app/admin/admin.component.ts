@@ -143,6 +143,17 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   processInput(): void {
     this.parseAndStoreSchedule();
+    
+    // Auto-start the first activity when schedule is processed
+    if (this.schedule.length > 0) {
+      const now = new Date();
+      const firstActivity = this.schedule[0];
+      firstActivity.actualStart = now;
+      firstActivity.startDate = now;
+      firstActivity.endDate = this.addDuration(now, firstActivity.duration);
+      this.sharedSchedule.setSchedule(this.schedule);
+    }
+    
     // Trigger refresh for all displays
     localStorage.setItem('programme-refresh', Date.now().toString());
     this.showModal = this.schedule.length > 0;
@@ -200,16 +211,39 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   updateCurrentActivity(): void {
     const now = new Date();
-    const current = this.schedule.find(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
-    if (current) {
+    console.log('[Admin] updateCurrentActivity() called at', now.toLocaleTimeString());
+    
+    // Log all activities and their states
+    this.schedule.forEach((activity, index) => {
+      console.log(`[Admin] Activity ${index}: ${activity.title}, actualStart: ${activity.actualStart?.toLocaleTimeString()}, actualEnd: ${activity.actualEnd?.toLocaleTimeString()}, endDate: ${activity.endDate?.toLocaleTimeString()}`);
+    });
+    
+    // COMMENTED OUT: Auto-switching logic - now using manual switching only
+    // const current = this.schedule.find(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
+    
+    // NEW: Manual switching - find currently running activity (may be overrunning)
+    const runningActivityIndex = this.schedule.findIndex(p => 
+      p.actualStart && !p.actualEnd
+    );
+    
+    console.log('[Admin] Running activity index:', runningActivityIndex);
+    
+    if (runningActivityIndex !== -1) {
+      const current = this.schedule[runningActivityIndex];
       this.currentTitle = current.title;
+      // Calculate time remaining (can go negative for overrun)
       const ms = (current.endDate!.getTime() - now.getTime());
       this.remainingTime = this.formatMs(ms);
       this.remainingColor = this.getColor(ms);
+      console.log('[Admin] Manual activity running:', this.currentTitle, 'Remaining:', this.remainingTime, 'ms:', ms);
     } else {
+      // No manually started activity is running
+      // In manual control mode, just show that no activity is active
+      // Don't fall back to scheduled activities to avoid confusion
       this.currentTitle = 'No active activity';
-      this.remainingTime = '';
+      this.remainingTime = 'Use "Start Next" to begin next activity';
       this.remainingColor = 'gray';
+      console.log('[Admin] No active activity - waiting for manual start');
     }
     this.updateFutureItems();
   }
@@ -234,36 +268,43 @@ export class AdminComponent implements OnDestroy, OnInit {
     if (this.selectedSkipIndex === null) return;
     const now = new Date();
     const targetIdx = this.selectedSkipIndex;
-    // Find current item
-    const currentIdx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
-    // End current and all skipped items
-    for (let i = 0; i < this.schedule.length; i++) {
-      if (i < targetIdx && (!this.schedule[i].actualEnd || this.schedule[i].endDate! > now)) {
-        this.schedule[i].actualEnd = now;
-        this.schedule[i].endDate = now;
-        if (!this.schedule[i].actualStart) {
-          this.schedule[i].actualStart = this.schedule[i].startDate;
-        }
-      }
-    }
-    // Set target item as current
-    const target = this.schedule[targetIdx];
-    target.startDate = now;
-    target.actualStart = now;
-    target.endDate = this.addDuration(now, target.duration);
-    target.actualEnd = undefined;
-    // All items after target: clear actualStart/actualEnd
-    for (let i = targetIdx + 1; i < this.schedule.length; i++) {
-      this.schedule[i].actualStart = undefined;
-      this.schedule[i].actualEnd = undefined;
-      // Reset startDate/endDate based on previous
-      if (i === targetIdx + 1) {
-        this.schedule[i].startDate = target.endDate;
-      } else {
-        this.schedule[i].startDate = this.addDuration(this.schedule[i - 1].startDate!, this.schedule[i - 1].duration);
-      }
-      this.schedule[i].endDate = this.addDuration(this.schedule[i].startDate!, this.schedule[i].duration);
-    }
+    
+    // COMMENTED OUT: Auto-switching skip logic - now using manual switching only
+    // // Find current item
+    // const currentIdx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
+    // // End current and all skipped items
+    // for (let i = 0; i < this.schedule.length; i++) {
+    //   if (i < targetIdx && (!this.schedule[i].actualEnd || this.schedule[i].endDate! > now)) {
+    //     this.schedule[i].actualEnd = now;
+    //     this.schedule[i].endDate = now;
+    //     if (!this.schedule[i].actualStart) {
+    //       this.schedule[i].actualStart = this.schedule[i].startDate;
+    //     }
+    //   }
+    // }
+    // // Set target item as current
+    // const target = this.schedule[targetIdx];
+    // target.startDate = now;
+    // target.actualStart = now;
+    // target.endDate = this.addDuration(now, target.duration);
+    // target.actualEnd = undefined;
+    // // All items after target: clear actualStart/actualEnd
+    // for (let i = targetIdx + 1; i < this.schedule.length; i++) {
+    //   this.schedule[i].actualStart = undefined;
+    //   this.schedule[i].actualEnd = undefined;
+    //   // Reset startDate/endDate based on previous
+    //   if (i === targetIdx + 1) {
+    //     this.schedule[i].startDate = target.endDate;
+    //   } else {
+    //     this.schedule[i].startDate = this.addDuration(this.schedule[i - 1].startDate!, this.schedule[i - 1].duration);
+    //   }
+    //   this.schedule[i].endDate = this.addDuration(this.schedule[i].startDate!, this.schedule[i].duration);
+    // }
+    
+    // NEW: Manual skip - just update the selection, don't auto-start
+    this.selectedSkipIndex = targetIdx;
+    this.showConfirmationPopup(`Selected activity: ${this.schedule[targetIdx].title}. Use "Start Next" to begin.`);
+    
     // Save and broadcast
     this.sharedSchedule.setSchedule(this.schedule);
     localStorage.setItem('programme-refresh', Date.now().toString());
@@ -278,73 +319,117 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.showConfirmationPopup('Please fill in all fields.');
       return;
     }
+    
+    const isFirstActivity = this.schedule.length === 0;
+    const now = new Date();
+    
     // Always schedule after last activity
     let startDate: Date;
     if (this.schedule.length > 0) {
       startDate = this.schedule[this.schedule.length - 1].endDate!;
     } else {
-      const now = new Date();
       startDate = new Date(now);
     }
     const startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
     const duration = this.newDuration.toString();
     const endDate = this.addDuration(startDate, duration);
-    this.schedule.push({
+    
+    const newActivity: Programme = {
       title: this.newTitle,
       startTime,
       duration,
       startDate,
       endDate
-    });
+    };
+    
+    // If this is the first activity, auto-start it
+    if (isFirstActivity) {
+      newActivity.actualStart = now;
+      newActivity.startDate = now;
+      newActivity.endDate = this.addDuration(now, duration);
+    }
+    
+    this.schedule.push(newActivity);
     this.sharedSchedule.setSchedule(this.schedule);
     this.updateFutureItems();
     this.newTitle = '';
     this.newStartTime = '';
     this.newDuration = null;
     this.showAddActivityModal = false;
-    this.showConfirmationPopup('Activity added successfully!');
+    
+    if (isFirstActivity) {
+      this.showConfirmationPopup('First activity added and started!');
+    } else {
+      this.showConfirmationPopup('Activity added successfully!');
+    }
   }
 
   // For editing current activity
   startEditCurrent() {
     const now = new Date();
-    const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
-    if (idx !== -1) {
-      const prog = this.schedule[idx];
+    
+    // First try to find manually started activity
+    let runningIdx = this.schedule.findIndex(p => p.actualStart && !p.actualEnd);
+    
+    // If no manually started activity, try to find time-based current activity
+    if (runningIdx === -1) {
+      runningIdx = this.schedule.findIndex(p => 
+        p.startDate && p.endDate && 
+        now >= p.startDate && now < p.endDate
+      );
+    }
+    
+    if (runningIdx !== -1) {
+      const prog = this.schedule[runningIdx];
       this.editTitle = prog.title;
       this.editStartTime = prog.startTime;
       this.editDuration = prog.duration;
       this.editingCurrent = true;
       // Do NOT stop or restart timer; timer continues running
+    } else {
+      this.showConfirmationPopup('No currently running activity to edit.');
     }
   }
 
   saveEditCurrent() {
     const now = new Date();
-    const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
-    if (idx !== -1) {
+    
+    // First try to find manually started activity
+    let runningIdx = this.schedule.findIndex(p => p.actualStart && !p.actualEnd);
+    
+    // If no manually started activity, try to find time-based current activity
+    if (runningIdx === -1) {
+      runningIdx = this.schedule.findIndex(p => 
+        p.startDate && p.endDate && 
+        now >= p.startDate && now < p.endDate
+      );
+    }
+    
+    if (runningIdx !== -1) {
       // Update current activity
-      this.schedule[idx].title = this.editTitle;
-      this.schedule[idx].startTime = this.editStartTime;
-      this.schedule[idx].duration = this.editDuration;
-      this.schedule[idx].startDate = this.parseStartTime(this.editStartTime);
-      this.schedule[idx].endDate = this.addDuration(this.schedule[idx].startDate!, this.editDuration);
-      // Sequentially schedule all following activities
-      let prevEnd = this.schedule[idx].endDate;
-      for (let i = idx + 1; i < this.schedule.length; i++) {
-        this.schedule[i].startDate = new Date(prevEnd!);
-        this.schedule[i].startTime = `${prevEnd!.getHours().toString().padStart(2, '0')}:${prevEnd!.getMinutes().toString().padStart(2, '0')}`;
-        this.schedule[i].endDate = this.addDuration(this.schedule[i].startDate!, this.schedule[i].duration);
-        if (this.schedule[i].endDate) {
-          prevEnd = this.schedule[i].endDate as Date;
-        }
+      this.schedule[runningIdx].title = this.editTitle;
+      this.schedule[runningIdx].startTime = this.editStartTime;
+      this.schedule[runningIdx].duration = this.editDuration;
+      
+      // Update the end time based on new duration
+      if (this.schedule[runningIdx].actualStart) {
+        // For manually started activities, use actual start time
+        this.schedule[runningIdx].endDate = this.addDuration(this.schedule[runningIdx].actualStart!, this.editDuration);
+      } else {
+        // For time-based activities, use scheduled start time
+        this.schedule[runningIdx].endDate = this.addDuration(this.schedule[runningIdx].startDate!, this.editDuration);
       }
+      
+      // Save changes
       this.sharedSchedule.setSchedule(this.schedule);
       localStorage.setItem('programme-refresh', Date.now().toString());
       this.schedule = this.sharedSchedule.getSchedule();
       this.updateCurrentActivity();
       this.updateFutureItems();
       this.editingCurrent = false;
+      this.showConfirmationPopup('Current activity updated successfully!');
+    } else {
+      this.showConfirmationPopup('No currently running activity to save.');
     }
   }
 
@@ -358,30 +443,48 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.showConfirmationPopup('Please fill in all fields.');
       return;
     }
+    
+    const isFirstActivity = this.schedule.length === 0;
+    const now = new Date();
+    
     // Always schedule after last activity
     let startDate: Date;
     if (this.schedule.length > 0) {
       startDate = this.schedule[this.schedule.length - 1].endDate!;
     } else {
-      const now = new Date();
       startDate = new Date(now);
     }
     const startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
     const endDate = this.addDuration(startDate, this.multiDuration.toString());
-    this.schedule.push({
+    
+    const newActivity: Programme = {
       title: this.multiTitle,
       startTime,
       duration: this.multiDuration.toString(),
       startDate,
       endDate
-    });
+    };
+    
+    // If this is the first activity, auto-start it
+    if (isFirstActivity) {
+      newActivity.actualStart = now;
+      newActivity.startDate = now;
+      newActivity.endDate = this.addDuration(now, this.multiDuration.toString());
+    }
+    
+    this.schedule.push(newActivity);
     this.sharedSchedule.setSchedule(this.schedule);
     this.updateFutureItems();
     // Clear fields for next entry
     this.multiTitle = '';
     this.multiStartTime = '';
     this.multiDuration = null;
-    this.showConfirmationPopup('Activity added! Enter another or click Done.');
+    
+    if (isFirstActivity) {
+      this.showConfirmationPopup('First activity added and started! Enter another or click Done.');
+    } else {
+      this.showConfirmationPopup('Activity added! Enter another or click Done.');
+    }
   }
 
   // Optionally, close modal and clear fields
@@ -393,15 +496,21 @@ export class AdminComponent implements OnDestroy, OnInit {
   }
 
   formatMs(ms: number): string {
-    if (ms < 0) return '0:00';
-    const totalSec = Math.floor(ms / 1000);
+    // Handle negative time (overrun)
+    const isNegative = ms < 0;
+    const absoluteMs = Math.abs(ms);
+    
+    const totalSec = Math.floor(absoluteMs / 1000);
     const min = Math.floor(totalSec / 60);
     const sec = totalSec % 60;
-    return `${min}:${sec.toString().padStart(2, '0')}`;
+    
+    const timeString = `${min}:${sec.toString().padStart(2, '0')}`;
+    return isNegative ? `-${timeString}` : timeString;
   }
 
   getColor(ms: number): string {
     const min = ms / 60000;
+    if (min < 0) return 'red'; // Overrun - show red for negative time
     if (min > 5) return 'green';
     if (min > 2) return 'orange';
     return 'red';
@@ -423,28 +532,97 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   endNow() {
     const now = new Date();
-    const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
-    if (idx !== -1) {
-      // End current item now
-      this.schedule[idx].endDate = now;
-      this.schedule[idx].actualEnd = now;
-      if (!this.schedule[idx].actualStart) {
-        this.schedule[idx].actualStart = this.schedule[idx].startDate;
+    // COMMENTED OUT: Old auto-switching logic
+    // const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
+    // if (idx !== -1) {
+    //   // End current item now
+    //   this.schedule[idx].endDate = now;
+    //   this.schedule[idx].actualEnd = now;
+    //   if (!this.schedule[idx].actualStart) {
+    //     this.schedule[idx].actualStart = this.schedule[idx].startDate;
+    //   }
+    // }
+    
+    // NEW: Manual end current activity
+    const runningIdx = this.schedule.findIndex(p => p.actualStart && !p.actualEnd);
+    if (runningIdx !== -1) {
+      this.schedule[runningIdx].actualEnd = now;
+      this.showConfirmationPopup(`Ended: ${this.schedule[runningIdx].title}`);
+    }
+      
+    // Save to local storage
+    this.sharedSchedule.setSchedule(this.schedule);
+    // Trigger refresh for all displays
+    localStorage.setItem('programme-refresh', Date.now().toString());
+    // Reload schedule from local storage for all tabs
+    this.schedule = this.sharedSchedule.getSchedule();
+    this.updateCurrentActivity();
+  }
+
+  // NEW: Manual activity control methods
+  startNextActivity() {
+    const now = new Date();
+    // End any currently running activity first
+    const runningIdx = this.schedule.findIndex(p => p.actualStart && !p.actualEnd);
+    if (runningIdx !== -1) {
+      this.schedule[runningIdx].actualEnd = now;
+    }
+    
+    // Find the next activity to start (next chronologically or first unstarted)
+    let nextIdx = -1;
+    
+    // First try to find the next scheduled activity that should be running now or next
+    const currentOrNextActivities = this.schedule
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => !item.actualStart && !item.actualEnd && item.startDate)
+      .sort((a, b) => a.item.startDate!.getTime() - b.item.startDate!.getTime());
+    
+    if (currentOrNextActivities.length > 0) {
+      nextIdx = currentOrNextActivities[0].index;
+    }
+    
+    if (nextIdx !== -1) {
+      this.schedule[nextIdx].actualStart = now;
+      this.schedule[nextIdx].startDate = now;
+      this.schedule[nextIdx].endDate = this.addDuration(now, this.schedule[nextIdx].duration);
+      
+      // Update subsequent activities' scheduled times to prevent overlap confusion
+      // This ensures that future activities have realistic scheduled times
+      let currentEndTime = this.schedule[nextIdx].endDate!;
+      for (let i = nextIdx + 1; i < this.schedule.length; i++) {
+        if (!this.schedule[i].actualStart && !this.schedule[i].actualEnd) {
+          this.schedule[i].startDate = new Date(currentEndTime);
+          this.schedule[i].endDate = this.addDuration(currentEndTime, this.schedule[i].duration);
+          currentEndTime = this.schedule[i].endDate!;
+          
+          // Update the display time string
+          this.schedule[i].startTime = `${this.schedule[i].startDate!.getHours().toString().padStart(2, '0')}:${this.schedule[i].startDate!.getMinutes().toString().padStart(2, '0')}`;
+        }
       }
-      // Start next item now
-      if (this.schedule[idx + 1]) {
-        this.schedule[idx + 1].startDate = now;
-        this.schedule[idx + 1].actualStart = now;
-        // Recalculate endDate for next item
-        this.schedule[idx + 1].endDate = this.addDuration(now, this.schedule[idx + 1].duration);
-      }
-      // Save to local storage
+      
+      // Save and broadcast changes
       this.sharedSchedule.setSchedule(this.schedule);
-      // Trigger refresh for all displays
       localStorage.setItem('programme-refresh', Date.now().toString());
-      // Reload schedule from local storage for all tabs
       this.schedule = this.sharedSchedule.getSchedule();
       this.updateCurrentActivity();
+      this.showConfirmationPopup(`Started: ${this.schedule[nextIdx].title}`);
+    } else {
+      this.showConfirmationPopup('No more activities to start.');
+    }
+  }
+
+  endCurrentActivity() {
+    const now = new Date();
+    const runningIdx = this.schedule.findIndex(p => p.actualStart && !p.actualEnd);
+    if (runningIdx !== -1) {
+      this.schedule[runningIdx].actualEnd = now;
+      
+      // Save and broadcast changes
+      this.sharedSchedule.setSchedule(this.schedule);
+      localStorage.setItem('programme-refresh', Date.now().toString());
+      this.schedule = this.sharedSchedule.getSchedule();
+      this.updateCurrentActivity();
+      this.showConfirmationPopup(`Ended: ${this.schedule[runningIdx].title}`);
     }
   }
 
@@ -582,10 +760,20 @@ export class AdminComponent implements OnDestroy, OnInit {
     this.inputText = text;
     this.parseAndStoreSchedule();
     this.updateFutureItems();
+    
+    // Auto-start the first activity when programme is loaded
+    if (this.schedule.length > 0) {
+      const firstActivity = this.schedule[0];
+      firstActivity.actualStart = now;
+      firstActivity.startDate = now;
+      firstActivity.endDate = this.addDuration(now, firstActivity.duration);
+      this.sharedSchedule.setSchedule(this.schedule);
+    }
+    
     // Force refresh for all displays so the current activity updates immediately
     localStorage.setItem('programme-refresh', Date.now().toString());
     this.showEditProgrammeModal = false;
-    this.showConfirmationPopup('Programme loaded!');
+    this.showConfirmationPopup('Programme loaded and first activity started!');
   }
 
   // Cancel editing

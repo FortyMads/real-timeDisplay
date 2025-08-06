@@ -8,6 +8,8 @@ interface Activity {
   duration: string;
   startDate?: Date;
   endDate?: Date;
+  actualStart?: Date;
+  actualEnd?: Date;
 }
 
 /**
@@ -139,30 +141,44 @@ export class DisplayComponent implements OnInit, OnDestroy {
    */
   updateCurrentActivity(): void {
     const now = new Date();
-    const current = this.schedule.find(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
+    
+    // First check for manually started activities (highest priority)
+    let current = this.schedule.find(p => p.actualStart && !p.actualEnd);
+    
     if (current) {
+      // Manual activity in progress - show overrun/remaining time from actual start
       this.currentTitle = current.title;
-      const ms = (current.endDate!.getTime() - now.getTime());
-      this.remainingTime = this.formatMs(ms);
-      this.remainingColor = this.getColor(ms);
-      console.log('[Display] Current activity:', this.currentTitle, 'Remaining:', this.remainingTime);
+      if (current.startDate && current.endDate) {
+        // Calculate time from when it was supposed to end vs now
+        const ms = (current.endDate!.getTime() - now.getTime());
+        this.remainingTime = this.formatMs(ms);
+        this.remainingColor = this.getColor(ms);
+      } else {
+        this.remainingTime = 'Manual';
+        this.remainingColor = 'blue';
+      }
+      console.log('[Display] Manual activity in progress:', this.currentTitle, 'Remaining:', this.remainingTime);
     } else {
+      // No manually started activity is running
+      // In manual control mode, don't show scheduled activities to avoid confusion
       this.currentTitle = 'No active activity';
-      this.remainingTime = '';
+      this.remainingTime = 'Waiting for manual start';
       this.remainingColor = 'gray';
-      console.log('[Display] No active activity.');
+      console.log('[Display] No active activity - waiting for manual start');
     }
   }
 
   /**
-   * Format milliseconds to mm:ss string
+   * Format milliseconds to mm:ss string (supports negative time)
    */
   formatMs(ms: number): string {
-    if (ms < 0) return '0:00';
-    const totalSec = Math.floor(ms / 1000);
+    const isNegative = ms < 0;
+    const absMs = Math.abs(ms);
+    const totalSec = Math.floor(absMs / 1000);
     const min = Math.floor(totalSec / 60);
     const sec = totalSec % 60;
-    return `${min}:${sec.toString().padStart(2, '0')}`;
+    const timeStr = `${min}:${sec.toString().padStart(2, '0')}`;
+    return isNegative ? `-${timeStr}` : timeStr;
   }
 
   /**
@@ -191,25 +207,29 @@ export class DisplayComponent implements OnInit, OnDestroy {
 
   /**
    * End the current activity immediately and start the next
+   * COMMENTED OUT: Auto-switching logic - now using manual control only
    */
   endNow() {
-    const now = new Date();
-    const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
-    if (idx !== -1) {
-      // End current item now
-      this.schedule[idx].endDate = now;
-      // Start next item now
-      if (this.schedule[idx + 1]) {
-        this.schedule[idx + 1].startDate = now;
-        // Recalculate endDate for next item
-        this.schedule[idx + 1].endDate = this.addDuration(now, this.schedule[idx + 1].duration);
-      }
-      // Save to local storage
-      this.sharedSchedule.setSchedule(this.schedule);
-      // Reload schedule from local storage for all tabs
-      this.schedule = this.sharedSchedule.getSchedule();
-      this.updateCurrentActivity();
-    }
+    // COMMENTED OUT: Auto-switching logic
+    // const now = new Date();
+    // const idx = this.schedule.findIndex(p => p.startDate && p.endDate && now >= p.startDate && now < p.endDate);
+    // if (idx !== -1) {
+    //   // End current item now
+    //   this.schedule[idx].endDate = now;
+    //   // Start next item now
+    //   if (this.schedule[idx + 1]) {
+    //     this.schedule[idx + 1].startDate = now;
+    //     // Recalculate endDate for next item
+    //     this.schedule[idx + 1].endDate = this.addDuration(now, this.schedule[idx + 1].duration);
+    //   }
+    //   // Save to local storage
+    //   this.sharedSchedule.setSchedule(this.schedule);
+    //   // Reload schedule from local storage for all tabs
+    //   this.schedule = this.sharedSchedule.getSchedule();
+    //   this.updateCurrentActivity();
+    // }
+    
+    console.log('[Display] endNow() called but auto-switching disabled - use admin manual controls');
   }
 
   /**

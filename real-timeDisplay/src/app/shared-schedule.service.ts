@@ -22,7 +22,9 @@ export class SharedScheduleService {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(schedule.map(p => ({
       ...p,
       startDate: p.startDate ? p.startDate.toISOString() : undefined,
-      endDate: p.endDate ? p.endDate.toISOString() : undefined
+      endDate: p.endDate ? p.endDate.toISOString() : undefined,
+      actualStart: p.actualStart ? p.actualStart.toISOString() : undefined,
+      actualEnd: p.actualEnd ? p.actualEnd.toISOString() : undefined
     }))));
   }
 
@@ -33,7 +35,9 @@ export class SharedScheduleService {
         this._schedule = JSON.parse(raw).map((p: any) => ({
           ...p,
           startDate: p.startDate ? new Date(p.startDate) : undefined,
-          endDate: p.endDate ? new Date(p.endDate) : undefined
+          endDate: p.endDate ? new Date(p.endDate) : undefined,
+          actualStart: p.actualStart ? new Date(p.actualStart) : undefined,
+          actualEnd: p.actualEnd ? new Date(p.actualEnd) : undefined
         }));
       }
     }

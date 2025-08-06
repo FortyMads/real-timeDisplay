@@ -1,20 +1,51 @@
 <div class="display-container" id="displayContainer">
   <!-- Announcement overlay -->
   <div *ngIf="announcement" class="announcement-overlay">
-    <div class="announcement-text">{{ announcement }}</div>
-  </div>
-  <!-- Main timer display -->
-  <div *ngIf="currentTitle !== 'No active activity' && !announcement; else noActive">
-    <div class="current-title">{{ currentTitle }}</div>
-    <div class="remaining-time" [ngStyle]="{'background-color': remainingColor, 'color': '#fff', 'border-radius': '6px', 'display': 'flex', 'align-items': 'center', 'justify-content': 'center', 'width': '100vw', 'height': '75vh', 'margin': '0 auto'}" [class.flashing]="remainingColor === 'red'">
-      {{ remainingTime }}
+    <div class="announcement-content">
+      <div class="announcement-header">ANNOUNCEMENT</div>
+      <div class="announcement-text">{{ announcement }}</div>
     </div>
   </div>
+  
+  <!-- Main timer display -->
+  <div *ngIf="currentTitle !== 'No active activity' && !announcement; else noActive" class="main-content">
+    <!-- Header section with title -->
+    <div class="header-section">
+      <div class="current-activity-label">CURRENT ACTIVITY</div>
+      <div class="current-title">{{ currentTitle }}</div>
+    </div>
+    
+    <!-- Main timer section -->
+    <div class="timer-section">
+      <div class="timer-display" [ngStyle]="{'color': remainingColor}" [class.flashing]="remainingColor === 'red'">
+        <div class="time-value">{{ remainingTime }}</div>
+        <div class="time-label">{{ remainingTime.includes('-') ? 'OVERRUN' : 'REMAINING' }}</div>
+      </div>
+    </div>
+    
+    <!-- Footer with status indicator -->
+    <div class="footer-section">
+      <div class="status-indicator" [ngStyle]="{'background-color': remainingColor}"></div>
+      <div class="status-text">{{ remainingTime.includes('-') ? 'Activity is running over time' : 'Activity in progress' }}</div>
+    </div>
+  </div>
+  
   <ng-template #noActive>
-    <div class="no-active">No active activity</div>
+    <div class="no-active-container">
+      <div class="no-active-icon">
+        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+      </div>
+      <div class="no-active-title">No Active Activity</div>
+      <div class="no-active-subtitle">Waiting for session to begin</div>
+    </div>
   </ng-template>
-  <button class="fullscreen-icon-btn" (click)="goFullscreen()" title="Go Fullscreen">
-    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+  
+  <!-- Fullscreen button -->
+  <button class="fullscreen-icon-btn" (click)="goFullscreen()" title="Enter Fullscreen">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <polyline points="4 8 4 4 8 4" />
       <polyline points="16 4 20 4 20 8" />
       <polyline points="20 16 20 20 16 20" />
@@ -22,28 +53,3 @@
     </svg>
   </button>
 </div>
-
-<style>
-.announcement-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.85);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.announcement-text {
-  color: #fff;
-  font-size: 3em;
-  font-weight: bold;
-  text-align: center;
-  padding: 2em;
-  background: rgba(0,0,0,0.6);
-  border-radius: 16px;
-  box-shadow: 0 0 24px #000;
-}
-</style>
