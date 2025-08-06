@@ -1,0 +1,55 @@
+<div class="display-container" id="displayContainer">
+  <!-- Announcement overlay -->
+  <div *ngIf="announcement" class="announcement-overlay">
+    <div class="announcement-content">
+      <div class="announcement-header">ANNOUNCEMENT</div>
+      <div class="announcement-text">{{ announcement }}</div>
+    </div>
+  </div>
+  
+  <!-- Main timer display -->
+  <div *ngIf="currentTitle !== 'No active activity' && !announcement; else noActive" class="main-content">
+    <!-- Header section with title -->
+    <div class="header-section">
+      <div class="current-activity-label">CURRENT ACTIVITY</div>
+      <div class="current-title">{{ currentTitle }}</div>
+    </div>
+    
+    <!-- Main timer section -->
+    <div class="timer-section">
+      <div class="timer-display" [ngStyle]="{'color': remainingColor}" [class.flashing]="remainingColor === 'red'">
+        <div class="time-value">{{ remainingTime }}</div>
+        <div class="time-label">{{ remainingTime.includes('-') ? 'OVERRUN' : 'REMAINING' }}</div>
+      </div>
+    </div>
+    
+    <!-- Footer with status indicator -->
+    <div class="footer-section">
+      <div class="status-indicator" [ngStyle]="{'background-color': remainingColor}"></div>
+      <div class="status-text">{{ remainingTime.includes('-') ? 'Activity is running over time' : 'Activity in progress' }}</div>
+    </div>
+  </div>
+  
+  <ng-template #noActive>
+    <div class="no-active-container">
+      <div class="no-active-icon">
+        <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+      </div>
+      <div class="no-active-title">No Active Activity</div>
+      <div class="no-active-subtitle">Waiting for session to begin</div>
+    </div>
+  </ng-template>
+  
+  <!-- Fullscreen button -->
+  <button class="fullscreen-icon-btn" (click)="goFullscreen()" title="Enter Fullscreen">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="4 8 4 4 8 4" />
+      <polyline points="16 4 20 4 20 8" />
+      <polyline points="20 16 20 20 16 20" />
+      <polyline points="8 20 4 20 4 16" />
+    </svg>
+  </button>
+</div>
