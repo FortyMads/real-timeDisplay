@@ -20,7 +20,7 @@
     <div *ngIf="showAddActivityModal" class="modal-overlay">
       <div class="modal-content">
         <h3>Add Activity</h3>
-        <form (ngSubmit)="addProgramme(); showAddActivityModal = false" #activityForm="ngForm" class="programme-form">
+        <form (ngSubmit)="addProgramme()" #activityForm="ngForm" class="programme-form">
           <div class="form-group">
             <label>Title:
               <input type="text" [(ngModel)]="newTitle" name="newTitle" required class="input-field" />
@@ -54,7 +54,10 @@
           </div>
           <div class="form-group">
             <label>Start Time:
-              <input type="time" [(ngModel)]="multiStartTime" name="multiStartTime" required class="input-field" />
+              <input type="time" [(ngModel)]="multiStartTime" name="multiStartTime" required class="input-field" [disabled]="schedule.length > 0" />
+              <small *ngIf="schedule.length > 0" style="display: block; color: #666; font-size: 0.8rem; margin-top: 0.2rem;">
+                Auto-scheduled after previous activity
+              </small>
             </label>
           </div>
           <div class="form-group">
@@ -65,7 +68,7 @@
           </div>
         </form>
         <div class="modal-actions">
-          <button (click)="addAnotherActivity()" [disabled]="!multiTitle || !multiStartTime || !multiDuration" class="add-btn add-multi-btn">Add Another</button>
+          <button (click)="addAnotherActivity()" [disabled]="!multiTitle || !multiDuration || (schedule.length === 0 && !multiStartTime)" class="add-btn add-multi-btn">Add Another</button>
           <button (click)="closeMultiActivityModal()" class="cancel-btn">Done</button>
         </div>
       </div>
@@ -239,4 +242,4 @@
         <button (click)="cancelEditProgramme()" style="background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer;">Cancel</button>
       </div>
     </div>
-  </div>
+

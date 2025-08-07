@@ -41,7 +41,7 @@ body, html {
 }
 
 .current-activity-label {
-  font-size: 1.1rem;
+  font-size: 1.65rem;
   font-weight: 500;
   color: #a0aec0;
   letter-spacing: 0.15em;
@@ -51,7 +51,7 @@ body, html {
 }
 
 .current-title {
-  font-size: 3.5rem;
+  font-size: 5.25rem;
   font-weight: 700;
   color: #ffffff;
   line-height: 1.2;
@@ -77,7 +77,7 @@ body, html {
 }
 
 .time-value {
-  font-size: 20rem;
+  font-size: 40rem;
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.05em;
@@ -255,33 +255,32 @@ body, html {
 
 /* === RESPONSIVE DESIGN FOR DIFFERENT TV SIZES === */
 @media (max-width: 1920px) {
-  .current-title { font-size: 3rem; }
-  .time-value { font-size: 18rem; }
+  .current-title { font-size: 4.5rem; }
+  .time-value { font-size: 36rem; }
   .no-active-title { font-size: 3.5rem; }
   .announcement-text { font-size: 3.5rem; }
 }
 
 @media (max-width: 1366px) {
-  .current-title { font-size: 2.5rem; }
-  .time-value { font-size: 16rem; }
+  .current-title { font-size: 3.75rem; }
+  .time-value { font-size: 32rem; }
   .no-active-title { font-size: 3rem; }
   .announcement-text { font-size: 3rem; }
   .header-section, .footer-section { padding-left: 4rem; padding-right: 4rem; }
 }
 
 @media (max-width: 1024px) {
-  .current-title { font-size: 2rem; }
-  .time-value { font-size: 14rem; }
+  .current-title { font-size: 3rem; }
+  .time-value { font-size: 28rem; }
   .no-active-title { font-size: 2.5rem; }
   .announcement-text { font-size: 2.5rem; }
   .header-section, .footer-section { padding-left: 3rem; padding-right: 3rem; }
 }
 
 /* === COLOR VARIATIONS FOR TIMER STATES === */
-.timer-display[style*="color: green"] .time-value,
-.timer-display[style*="color: #43a047"] .time-value {
-  color: #10b981;
-  text-shadow: 0 8px 32px rgba(16,185,129,0.3);
+.timer-display[style*="color: white"] .time-value {
+  color: #ffffff;
+  text-shadow: 0 8px 32px rgba(255,255,255,0.3);
 }
 
 .timer-display[style*="color: orange"] .time-value,

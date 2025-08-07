@@ -26,7 +26,7 @@ export class AdminComponent implements OnDestroy, OnInit {
   showModal: boolean = false;
   currentTitle: string = '';
   remainingTime: string = '';
-  remainingColor: string = 'green';
+  remainingColor: string = 'white';
   private timer: any;
 
   // For skip-to-any-item
@@ -111,7 +111,9 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   ngOnDestroy(): void {
     this.stopTimer();
+    if (this.announcementTimeout) clearTimeout(this.announcementTimeout);
     window.removeEventListener('storage', this.handleStorageEvent);
+    window.removeEventListener('message', this.handleDisplayMessage);
   }
 
   handleStorageEvent = (event: StorageEvent) => {
@@ -202,10 +204,20 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   addDuration(start: Date, duration: string): Date {
     // Expects mm or mm:ss
-    const [min, sec] = duration.split(':').map(Number);
+    const parts = duration.split(':').map(Number);
+    
+    // Validate input
+    if (parts.length === 0 || parts.some(isNaN)) {
+      console.warn('Invalid duration format:', duration);
+      return new Date(start); // Return original date if invalid
+    }
+    
+    const min = parts[0] || 0;
+    const sec = parts[1] || 0;
+    
     const end = new Date(start);
     end.setMinutes(end.getMinutes() + min);
-    if (sec) end.setSeconds(end.getSeconds() + sec);
+    end.setSeconds(end.getSeconds() + sec);
     return end;
   }
 
@@ -315,7 +327,7 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   // Add a programme from the beginner-friendly form
   addProgramme(): void {
-    if (!this.newTitle || !this.newDuration) {
+    if (!this.newTitle || !this.newDuration || !this.newStartTime) {
       this.showConfirmationPopup('Please fill in all fields.');
       return;
     }
@@ -323,14 +335,28 @@ export class AdminComponent implements OnDestroy, OnInit {
     const isFirstActivity = this.schedule.length === 0;
     const now = new Date();
     
-    // Always schedule after last activity
-    let startDate: Date;
-    if (this.schedule.length > 0) {
-      startDate = this.schedule[this.schedule.length - 1].endDate!;
-    } else {
-      startDate = new Date(now);
+    // Validate and use the user's specified start time
+    if (!this.newStartTime || !this.newStartTime.includes(':')) {
+      this.showConfirmationPopup('Please enter a valid start time.');
+      return;
     }
-    const startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
+    
+    const timeParts = this.newStartTime.split(':').map(Number);
+    if (timeParts.some(isNaN) || timeParts[0] < 0 || timeParts[0] > 23 || timeParts[1] < 0 || timeParts[1] > 59) {
+      this.showConfirmationPopup('Please enter a valid start time (HH:MM format).');
+      return;
+    }
+    
+    const [hours, minutes] = timeParts;
+    const startDate = new Date();
+    startDate.setHours(hours, minutes, 0, 0);
+    
+    // If start time is in the past, schedule for tomorrow
+    if (startDate < now) {
+      startDate.setDate(startDate.getDate() + 1);
+    }
+    
+    const startTime = this.newStartTime;
     const duration = this.newDuration.toString();
     const endDate = this.addDuration(startDate, duration);
     
@@ -439,22 +465,52 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   // Add another activity from the multi-activity modal
   addAnotherActivity() {
-    if (!this.multiTitle || !this.multiDuration) {
-      this.showConfirmationPopup('Please fill in all fields.');
+    // Validation changes based on whether this is first activity or not
+    const isFirstActivity = this.schedule.length === 0;
+    
+    if (!this.multiTitle || !this.multiDuration || (isFirstActivity && !this.multiStartTime)) {
+      const missingField = !this.multiTitle ? 'title' : !this.multiDuration ? 'duration' : 'start time';
+      this.showConfirmationPopup(`Please fill in the ${missingField} field.`);
       return;
     }
-    
-    const isFirstActivity = this.schedule.length === 0;
     const now = new Date();
     
-    // Always schedule after last activity
     let startDate: Date;
-    if (this.schedule.length > 0) {
-      startDate = this.schedule[this.schedule.length - 1].endDate!;
+    let startTime: string;
+    
+    if (isFirstActivity) {
+      // First activity: Validate and use user's specified start time
+      if (!this.multiStartTime || !this.multiStartTime.includes(':')) {
+        this.showConfirmationPopup('Please enter a valid start time.');
+        return;
+      }
+      
+      const timeParts = this.multiStartTime.split(':').map(Number);
+      if (timeParts.some(isNaN) || timeParts[0] < 0 || timeParts[0] > 23 || timeParts[1] < 0 || timeParts[1] > 59) {
+        this.showConfirmationPopup('Please enter a valid start time (HH:MM format).');
+        return;
+      }
+      
+      const [hours, minutes] = timeParts;
+      startDate = new Date();
+      startDate.setHours(hours, minutes, 0, 0);
+      
+      // If start time is in the past, schedule for tomorrow
+      if (startDate < now) {
+        startDate.setDate(startDate.getDate() + 1);
+      }
+      startTime = this.multiStartTime;
     } else {
-      startDate = new Date(now);
+      // Subsequent activities: Schedule after the last activity's end time
+      const lastActivity = this.schedule[this.schedule.length - 1];
+      if (!lastActivity.endDate) {
+        // Fallback if endDate is missing
+        lastActivity.endDate = this.addDuration(lastActivity.startDate || now, lastActivity.duration);
+      }
+      startDate = lastActivity.endDate;
+      startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
     }
-    const startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
+    
     const endDate = this.addDuration(startDate, this.multiDuration.toString());
     
     const newActivity: Programme = {
@@ -511,7 +567,7 @@ export class AdminComponent implements OnDestroy, OnInit {
   getColor(ms: number): string {
     const min = ms / 60000;
     if (min < 0) return 'red'; // Overrun - show red for negative time
-    if (min > 5) return 'green';
+    if (min > 5) return 'white';
     if (min > 2) return 'orange';
     return 'red';
   }

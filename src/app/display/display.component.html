@@ -17,7 +17,7 @@
     
     <!-- Main timer section -->
     <div class="timer-section">
-      <div class="timer-display" [ngStyle]="{'color': remainingColor}" [class.flashing]="remainingColor === 'red'">
+      <div class="timer-display" [ngStyle]="{'color': remainingColor}" [class.flashing]="remainingColor === 'red' || remainingColor === 'orange' || remainingTime.includes('-')">
         <div class="time-value">{{ remainingTime }}</div>
         <div class="time-label">{{ remainingTime.includes('-') ? 'OVERRUN' : 'REMAINING' }}</div>
       </div>

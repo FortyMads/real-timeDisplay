@@ -36,8 +36,8 @@ export class DisplayComponent implements OnInit, OnDestroy {
   currentTitle: string = '';
   /** Remaining time for current activity */
   remainingTime: string = '';
-  /** Color for remaining time (green/orange/red/gray) */
-  remainingColor: string = 'green';
+  /** Color for remaining time (white/orange/red/gray) */
+  remainingColor: string = 'white';
   /** Timer interval for updating current activity */
   private timer: any;
 
@@ -225,7 +225,7 @@ export class DisplayComponent implements OnInit, OnDestroy {
    */
   getColor(ms: number): string {
     const min = ms / 60000;
-    if (min > 5) return 'green';
+    if (min > 5) return 'white';
     if (min > 2) return 'orange';
     return 'red';
   }
