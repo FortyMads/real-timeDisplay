@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Bootstrap Debug</title>
+  <base href="./">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .debug { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+    .error { background: #ffe6e6; border-color: #ff0000; }
+    .success { background: #e6ffe6; border-color: #00ff00; }
+  </style>
+</head>
+<body>
+  <h1>Angular Bootstrap Debug</h1>
+  <div id="status"></div>
+  <app-root>Loading Angular Application...</app-root>
+
+  <script>
+    console.log('Debug script loading...');
+    
+    function addStatus(message, type = 'debug') {
+      const statusDiv = document.getElementById('status');
+      const div = document.createElement('div');
+      div.className = `debug ${type}`;
+      div.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+      statusDiv.appendChild(div);
+      console.log(message);
+    }
+
+    window.addEventListener('load', () => {
+      addStatus('Page loaded, checking Angular...', 'debug');
+      
+      // Check if Angular is available
+      setTimeout(() => {
+        if (typeof ng !== 'undefined') {
+          addStatus('Angular (ng) is available', 'success');
+        } else {
+          addStatus('Angular (ng) is not defined', 'error');
+        }
+        
+        // Check if app-root is found
+        const appRoot = document.querySelector('app-root');
+        if (appRoot) {
+          addStatus('app-root element found', 'success');
+          addStatus('app-root content: ' + appRoot.innerHTML.substring(0, 100) + '...', 'debug');
+          
+          setTimeout(() => {
+            const hasAngularContent = appRoot.querySelector('.admin-container') || appRoot.querySelector('.display-container');
+            if (hasAngularContent) {
+              addStatus('Angular app has initialized successfully!', 'success');
+            } else {
+              addStatus('Angular app has not initialized - showing fallback content', 'error');
+            }
+          }, 2000);
+        } else {
+          addStatus('app-root element not found', 'error');
+        }
+      }, 1000);
+    });
+
+    // Catch any JavaScript errors
+    window.addEventListener('error', (event) => {
+      addStatus(`JavaScript Error: ${event.message} at ${event.filename}:${event.lineno}`, 'error');
+    });
+  </script>
+</body>
+</html>
+</script>

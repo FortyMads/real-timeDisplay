@@ -90,3 +90,17 @@ See TECHNICAL_MANUAL.md for architecture, extensibility, and troubleshooting tip
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Deploying to GitHub Pages
+
+This repo is configured to deploy to GitHub Pages from the `main` branch using GitHub Actions.
+
+- Build locally for Pages (optional):
+  - `npm run build:ghpages`
+  - Outputs to `dist/angular-app/browser` with base-href `/real-timeDisplay/`.
+
+- CI deployment:
+  - On every push to `main`, the workflow `.github/workflows/gh-pages.yml` builds with the correct base-href and publishes the `dist/angular-app/browser` folder to Pages.
+  - A `404.html` is added for SPA deep-link routing.
+
+Make sure your repository name is `real-timeDisplay` (case-sensitive) and Pages is enabled for GitHub Actions in the repo settings.
