@@ -1,0 +1,5 @@
+# Real-Time Display - SPA Redirect Configuration
+# Place this file in the root of your web server alongside index.html
+
+# For Angular routing support - redirect all 404s to index.html
+/*    /index.html   200
