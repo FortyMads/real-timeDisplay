@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>Debug Test Page</h1>
+    <p>If you can see this, basic HTML is working.</p>
+    <div id="test">Loading...</div>
+    
+    <script>
+        console.log("JavaScript is working");
+        document.getElementById('test').innerHTML = "JavaScript executed successfully!";
+        
+        // Test if the app-root element exists
+        const appRoot = document.querySelector('app-root');
+        if (appRoot) {
+            console.log("app-root element found");
+        } else {
+            console.log("app-root element not found");
+        }
+        
+        // Log any errors
+        window.addEventListener('error', function(e) {
+            console.error('Error caught:', e.error);
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+        });
+    </script>
+</body>
+</html>
