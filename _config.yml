@@ -1,0 +1,30 @@
+# GitHub Pages configuration for Real-Time Display System
+title: "Real-Time Display System"
+description: "A professional activity timer and display system for events, presentations, and workshops"
+
+# Enable GitHub Pages
+plugins:
+  - jekyll-sitemap
+
+# Custom domain (if you have one)
+# url: "https://yourdomain.com"
+
+# GitHub Pages specific settings
+markdown: kramdown
+highlighter: rouge
+
+# Exclude files from processing
+exclude:
+  - node_modules/
+  - src/
+  - dist/
+  - .angular/
+  - .vscode/
+  - "*.md"
+  - "*.json"
+  - "*.ts"
+  - "*.js"
+  - "*.css"
+  - create-standalone.sh
+  - test-simple.html
+  - real-timeDisplay/
