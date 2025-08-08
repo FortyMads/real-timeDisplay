@@ -93,6 +93,17 @@ export class AdminComponent implements OnDestroy, OnInit {
     window.addEventListener('message', this.handleDisplayMessage);
   }
 
+  /**
+   * Build an absolute URL to a route within this app, honoring the <base href>.
+   */
+  private buildAppUrl(path: string, params?: Record<string, string | number | boolean>): string {
+    const url = new URL(path.replace(/^\//, ''), document.baseURI);
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    }
+    return url.toString();
+  }
+
   // Handle messages from display windows (fullscreen confirmation)
   handleDisplayMessage = (event: MessageEvent) => {
     if (event.data && event.data.type === 'fullscreenStatus') {
@@ -685,7 +696,7 @@ export class AdminComponent implements OnDestroy, OnInit {
   // Called when Full Screen button is clicked in Preview tab
   sendFullscreenToDisplay() {
     // Find the iframe
-    const iframe = document.querySelector('iframe[src="/display"]') as HTMLIFrameElement;
+  const iframe = document.getElementById('miniDisplay') as HTMLIFrameElement | null;
     if (iframe && iframe.contentWindow) {
       iframe.contentWindow.postMessage({ action: 'goFullScreen' }, '*');
     }
@@ -749,9 +760,10 @@ export class AdminComponent implements OnDestroy, OnInit {
       }
     }
 
-    // Open the display window
+    // Open the display window (respect repository base path when hosted on GitHub Pages)
+    const displayUrl = this.buildAppUrl('display', { fullscreen: true, autostart: true });
     const displayWindow = window.open(
-      '/display?fullscreen=true&autostart=true',
+      displayUrl,
       'displayWindow',
       `width=${targetWidth},height=${targetHeight},left=${targetX},top=${targetY},menubar=no,toolbar=no,location=no,status=no,scrollbars=no`
     );
