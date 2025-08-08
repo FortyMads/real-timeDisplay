@@ -20,11 +20,20 @@ exclude:
   - dist/
   - .angular/
   - .vscode/
-  - "*.md"
+  - "*.md" 
   - "*.json"
   - "*.ts"
-  - "*.js"
-  - "*.css"
   - create-standalone.sh
   - test-simple.html
+  - debug-test.html
+  - angular-test.html
   - real-timeDisplay/
+  - deployment/
+
+# Include important files
+include:
+  - index.html
+  - complete-standalone.html
+
+# Disable Jekyll processing for standalone files
+plugins: []
