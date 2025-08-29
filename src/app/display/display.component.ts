@@ -10,6 +10,9 @@ interface Activity {
   endDate?: Date;
   actualStart?: Date;
   actualEnd?: Date;
+  paused?: boolean;
+  pausedAt?: Date;
+  totalPausedMs?: number;
 }
 
 /**
@@ -188,10 +191,12 @@ export class DisplayComponent implements OnInit, OnDestroy {
       // Manual activity in progress - show overrun/remaining time from actual start
       this.currentTitle = current.title;
       if (current.startDate && current.endDate) {
-        // Calculate time from when it was supposed to end vs now
-        const ms = (current.endDate!.getTime() - now.getTime());
+        // Calculate remaining time, compensating for paused durations
+        const totalPaused = (current.totalPausedMs || 0) + (current.paused && current.pausedAt ? (now.getTime() - new Date(current.pausedAt).getTime()) : 0);
+        const effectiveNow = now.getTime() - totalPaused;
+        const ms = (current.endDate!.getTime() - effectiveNow);
         this.remainingTime = this.formatMs(ms);
-        this.remainingColor = this.getColor(ms);
+        this.remainingColor = current.paused ? 'gray' : this.getColor(ms);
       } else {
         this.remainingTime = 'Manual';
         this.remainingColor = 'blue';
@@ -214,9 +219,12 @@ export class DisplayComponent implements OnInit, OnDestroy {
     const isNegative = ms < 0;
     const absMs = Math.abs(ms);
     const totalSec = Math.floor(absMs / 1000);
-    const min = Math.floor(totalSec / 60);
-    const sec = totalSec % 60;
-    const timeStr = `${min}:${sec.toString().padStart(2, '0')}`;
+    const hours = Math.floor(totalSec / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+    const timeStr = hours > 0
+      ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      : `${minutes}:${seconds.toString().padStart(2, '0')}`;
     return isNegative ? `-${timeStr}` : timeStr;
   }
 

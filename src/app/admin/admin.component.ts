@@ -11,6 +11,10 @@ interface Programme {
   endDate?: Date;
   actualStart?: Date;
   actualEnd?: Date;
+  // Pause support
+  paused?: boolean;
+  pausedAt?: Date;
+  totalPausedMs?: number;
 }
 
 @Component({
@@ -33,8 +37,8 @@ export class AdminComponent implements OnDestroy, OnInit {
   selectedSkipIndex: number | null = null;
   futureItems: { index: number; title: string; startTime: string }[] = [];
 
-  // Tab selection for UI (now supports 3 tabs)
-  selectedTab: 'input' | 'schedule' | 'current' | 'announcements' = 'input';
+  // Tab selection for UI (default to current activity)
+  selectedTab: 'input' | 'schedule' | 'current' | 'announcements' = 'current';
 
   // Reference for the display iframe
   displayIframe: HTMLIFrameElement | null = null;
@@ -254,11 +258,13 @@ export class AdminComponent implements OnDestroy, OnInit {
     if (runningActivityIndex !== -1) {
       const current = this.schedule[runningActivityIndex];
       this.currentTitle = current.title;
-      // Calculate time remaining (can go negative for overrun)
-      const ms = (current.endDate!.getTime() - now.getTime());
+      // Calculate time remaining with pause compensation
+      const totalPaused = (current.totalPausedMs || 0) + (current.paused && current.pausedAt ? (now.getTime() - new Date(current.pausedAt).getTime()) : 0);
+      const effectiveNow = now.getTime() - totalPaused;
+      const ms = current.endDate! ? (current.endDate!.getTime() - effectiveNow) : 0;
       this.remainingTime = this.formatMs(ms);
-      this.remainingColor = this.getColor(ms);
-      console.log('[Admin] Manual activity running:', this.currentTitle, 'Remaining:', this.remainingTime, 'ms:', ms);
+      this.remainingColor = current.paused ? 'gray' : this.getColor(ms);
+      console.log('[Admin] Manual activity running:', this.currentTitle, 'Remaining:', this.remainingTime, 'ms:', ms, 'paused:', !!current.paused);
     } else {
       // No manually started activity is running
       // In manual control mode, just show that no activity is active
@@ -579,13 +585,14 @@ export class AdminComponent implements OnDestroy, OnInit {
   formatMs(ms: number): string {
     // Handle negative time (overrun)
     const isNegative = ms < 0;
-    const absoluteMs = Math.abs(ms);
-    
-    const totalSec = Math.floor(absoluteMs / 1000);
-    const min = Math.floor(totalSec / 60);
-    const sec = totalSec % 60;
-    
-    const timeString = `${min}:${sec.toString().padStart(2, '0')}`;
+    const absMs = Math.abs(ms);
+    const totalSec = Math.floor(absMs / 1000);
+    const hours = Math.floor(totalSec / 3600);
+    const minutes = Math.floor((totalSec % 3600) / 60);
+    const seconds = totalSec % 60;
+    const timeString = hours > 0
+      ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      : `${minutes}:${seconds.toString().padStart(2, '0')}`;
     return isNegative ? `-${timeString}` : timeString;
   }
 
@@ -705,6 +712,33 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.updateCurrentActivity();
       this.showConfirmationPopup(`Ended: ${this.schedule[runningIdx].title}`);
     }
+  }
+
+  // Pause/Resume current activity without changing its original duration
+  togglePauseCurrent() {
+    const now = new Date();
+    const runningIdx = this.schedule.findIndex(p => p.actualStart && !p.actualEnd);
+    if (runningIdx === -1) return;
+    const current = this.schedule[runningIdx];
+    if (current.paused) {
+      // Resume: accumulate paused duration
+      const pausedAtMs = current.pausedAt ? new Date(current.pausedAt).getTime() : now.getTime();
+      const delta = now.getTime() - pausedAtMs;
+      current.totalPausedMs = (current.totalPausedMs || 0) + delta;
+      current.paused = false;
+      current.pausedAt = undefined;
+      this.showConfirmationPopup('Resumed');
+    } else {
+      // Pause: mark paused and timestamp
+      current.paused = true;
+      current.pausedAt = now;
+      this.showConfirmationPopup('Paused');
+    }
+    // Persist and broadcast
+    this.sharedSchedule.setSchedule(this.schedule);
+    localStorage.setItem('programme-refresh', Date.now().toString());
+    this.schedule = this.sharedSchedule.getSchedule();
+    this.updateCurrentActivity();
   }
 
   // Called when Full Screen button is clicked in Preview tab

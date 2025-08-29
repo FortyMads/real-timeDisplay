@@ -8,6 +8,9 @@ interface Programme {
   endDate?: Date;
   actualStart?: Date;
   actualEnd?: Date;
+  paused?: boolean;
+  pausedAt?: Date;
+  totalPausedMs?: number;
 }
 
 const STORAGE_KEY = 'programme-schedule';
@@ -24,7 +27,9 @@ export class SharedScheduleService {
       startDate: p.startDate ? p.startDate.toISOString() : undefined,
       endDate: p.endDate ? p.endDate.toISOString() : undefined,
       actualStart: p.actualStart ? p.actualStart.toISOString() : undefined,
-      actualEnd: p.actualEnd ? p.actualEnd.toISOString() : undefined
+  actualEnd: p.actualEnd ? p.actualEnd.toISOString() : undefined,
+  pausedAt: p.pausedAt ? p.pausedAt.toISOString() : undefined,
+  totalPausedMs: p.totalPausedMs || 0
     }))));
   }
 
@@ -37,7 +42,9 @@ export class SharedScheduleService {
           startDate: p.startDate ? new Date(p.startDate) : undefined,
           endDate: p.endDate ? new Date(p.endDate) : undefined,
           actualStart: p.actualStart ? new Date(p.actualStart) : undefined,
-          actualEnd: p.actualEnd ? new Date(p.actualEnd) : undefined
+          actualEnd: p.actualEnd ? new Date(p.actualEnd) : undefined,
+          pausedAt: p.pausedAt ? new Date(p.pausedAt) : undefined,
+          totalPausedMs: p.totalPausedMs || 0
         }));
       }
     }
