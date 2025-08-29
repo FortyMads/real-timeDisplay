@@ -338,39 +338,50 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   // Add a programme from the beginner-friendly form
   addProgramme(): void {
-    if (!this.newTitle || !this.newDuration || !this.newStartTime) {
-      this.showConfirmationPopup('Please fill in all fields.');
+    if (!this.newTitle || !this.newDuration || (this.schedule.length === 0 && !this.newStartTime)) {
+      this.showConfirmationPopup('Please fill in all required fields.');
       return;
     }
-    
+
     const isFirstActivity = this.schedule.length === 0;
     const now = new Date();
-    
-    // Validate and use the user's specified start time
-    if (!this.newStartTime || !this.newStartTime.includes(':')) {
-      this.showConfirmationPopup('Please enter a valid start time.');
-      return;
+
+    let startDate: Date;
+    let startTime: string;
+
+    if (isFirstActivity) {
+      // Validate and use the user's specified start time
+      if (!this.newStartTime || !this.newStartTime.includes(':')) {
+        this.showConfirmationPopup('Please enter a valid start time.');
+        return;
+      }
+      const timeParts = this.newStartTime.split(':').map(Number);
+      if (timeParts.some(isNaN) || timeParts[0] < 0 || timeParts[0] > 23 || timeParts[1] < 0 || timeParts[1] > 59) {
+        this.showConfirmationPopup('Please enter a valid start time (HH:MM format).');
+        return;
+      }
+      const [hours, minutes] = timeParts;
+      startDate = new Date();
+      startDate.setHours(hours, minutes, 0, 0);
+      // If start time is in the past, schedule for tomorrow
+      if (startDate < now) {
+        startDate.setDate(startDate.getDate() + 1);
+      }
+      startTime = this.newStartTime;
+    } else {
+      // Auto-schedule after the last activity's end time
+      const last = this.schedule[this.schedule.length - 1];
+      if (!last.endDate) {
+        last.startDate = last.startDate || now;
+        last.endDate = this.addDuration(last.startDate, last.duration);
+      }
+      startDate = new Date(last.endDate!);
+      startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
     }
-    
-    const timeParts = this.newStartTime.split(':').map(Number);
-    if (timeParts.some(isNaN) || timeParts[0] < 0 || timeParts[0] > 23 || timeParts[1] < 0 || timeParts[1] > 59) {
-      this.showConfirmationPopup('Please enter a valid start time (HH:MM format).');
-      return;
-    }
-    
-    const [hours, minutes] = timeParts;
-    const startDate = new Date();
-    startDate.setHours(hours, minutes, 0, 0);
-    
-    // If start time is in the past, schedule for tomorrow
-    if (startDate < now) {
-      startDate.setDate(startDate.getDate() + 1);
-    }
-    
-    const startTime = this.newStartTime;
+
     const duration = this.newDuration.toString();
     const endDate = this.addDuration(startDate, duration);
-    
+
     const newActivity: Programme = {
       title: this.newTitle,
       startTime,
@@ -378,27 +389,28 @@ export class AdminComponent implements OnDestroy, OnInit {
       startDate,
       endDate
     };
-    
-    // If this is the first activity, auto-start it
+
+    // If this is the first activity, auto-start it now
     if (isFirstActivity) {
       newActivity.actualStart = now;
       newActivity.startDate = now;
       newActivity.endDate = this.addDuration(now, duration);
     }
-    
+
     this.schedule.push(newActivity);
     this.sharedSchedule.setSchedule(this.schedule);
+    // Notify other windows/iframes to refresh
+    localStorage.setItem('programme-refresh', Date.now().toString());
+    this.schedule = this.sharedSchedule.getSchedule();
     this.updateFutureItems();
+
+    // Reset form
     this.newTitle = '';
     this.newStartTime = '';
     this.newDuration = null;
     this.showAddActivityModal = false;
-    
-    if (isFirstActivity) {
-      this.showConfirmationPopup('First activity added and started!');
-    } else {
-      this.showConfirmationPopup('Activity added successfully!');
-    }
+
+    this.showConfirmationPopup(isFirstActivity ? 'First activity added and started!' : 'Activity added successfully!');
   }
 
   // For editing current activity
@@ -522,7 +534,7 @@ export class AdminComponent implements OnDestroy, OnInit {
       startTime = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
     }
     
-    const endDate = this.addDuration(startDate, this.multiDuration.toString());
+  const endDate = this.addDuration(startDate, this.multiDuration.toString());
     
     const newActivity: Programme = {
       title: this.multiTitle,
@@ -541,7 +553,9 @@ export class AdminComponent implements OnDestroy, OnInit {
     
     this.schedule.push(newActivity);
     this.sharedSchedule.setSchedule(this.schedule);
-    this.updateFutureItems();
+  this.updateFutureItems();
+  // Broadcast update for other windows
+  localStorage.setItem('programme-refresh', Date.now().toString());
     // Clear fields for next entry
     this.multiTitle = '';
     this.multiStartTime = '';

@@ -20,7 +20,7 @@
     <div *ngIf="showAddActivityModal" class="modal-overlay">
       <div class="modal-content">
         <h3>Add Activity</h3>
-        <form (ngSubmit)="addProgramme()" #activityForm="ngForm" class="programme-form">
+  <form (ngSubmit)="addProgramme()" #activityForm="ngForm" class="programme-form">
           <div class="form-group">
             <label>Title:
               <input type="text" [(ngModel)]="newTitle" name="newTitle" required class="input-field" />
@@ -28,7 +28,8 @@
           </div>
           <div class="form-group">
             <label>Start Time:
-              <input type="time" [(ngModel)]="newStartTime" name="newStartTime" required class="input-field" />
+              <input type="time" [(ngModel)]="newStartTime" name="newStartTime" [required]="schedule.length === 0" [disabled]="schedule.length > 0" class="input-field" />
+              <small *ngIf="schedule.length > 0" style="display: block; color: #666; font-size: 0.8rem; margin-top: 0.2rem;">Auto-scheduled after previous activity</small>
             </label>
           </div>
           <div class="form-group">
@@ -132,7 +133,7 @@
     <div class="current-card" style="background: #23283a; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.10); padding: 2rem 2.5rem; display: flex; flex-direction: column; align-items: center;">
       <div class="current-title" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.2rem; letter-spacing: 0.5px; display: flex; flex-direction: column; align-items: center;">
         <span style="font-size: 1.15rem; margin-bottom: 0.5rem;">Current: <span>{{ currentTitle }}</span>
-          <button *ngIf="!editingCurrent && currentTitle !== 'No active programme'" (click)="startEditCurrent()" class="edit-btn" style="margin-left: 1rem; font-size: 1rem; background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 0.9rem; cursor: pointer;">Edit</button>
+          <button *ngIf="!editingCurrent && currentTitle !== 'No active activity'" (click)="startEditCurrent()" class="edit-btn" style="margin-left: 1rem; font-size: 1rem; background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 0.9rem; cursor: pointer;">Edit</button>
         </span>
         <span style="font-size: 3.2rem; font-weight: 900; color: #43a047; letter-spacing: 2px; margin-bottom: 0.5rem;">{{ remainingTime }}</span>
       </div>
