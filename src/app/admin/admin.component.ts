@@ -760,17 +760,16 @@ export class AdminComponent implements OnDestroy, OnInit {
     target.totalPausedMs = 0;
     target.endDate = this.addDuration(now, target.duration);
 
-    // Adjust subsequent items that haven't started yet to follow sequentially
-    let currentEnd = target.endDate!;
-    for (let i = targetIdx + 1; i < this.schedule.length; i++) {
+    // For items before targetIdx, mark them as completed if they were in progress without end
+    for (let i = 0; i < targetIdx; i++) {
       const item = this.schedule[i];
-      if (!item.actualStart && !item.actualEnd) {
-        item.startDate = new Date(currentEnd);
-        item.endDate = this.addDuration(currentEnd, item.duration);
-        currentEnd = item.endDate!;
-        item.startTime = `${item.startDate!.getHours().toString().padStart(2, '0')}:${item.startDate!.getMinutes().toString().padStart(2, '0')}`;
+      if (item.actualStart && !item.actualEnd) {
+        item.actualEnd = now;
       }
     }
+
+    // For items after targetIdx that haven't started yet, leave them pending; don't recalculate times here
+    // This preserves the plan; operator can Start Next when ready.
 
     // Persist and broadcast
     this.sharedSchedule.setSchedule(this.schedule);
@@ -818,20 +817,7 @@ export class AdminComponent implements OnDestroy, OnInit {
     this.updateCurrentActivity();
   }
 
-  // Called when Full Screen button is clicked in Preview tab
-  sendFullscreenToDisplay() {
-    // Find the iframe
-  const iframe = document.getElementById('miniDisplay') as HTMLIFrameElement | null;
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage({ action: 'goFullScreen' }, '*');
-    }
-  }
-
-  // Trigger fullscreen on the real display from the mini preview
-  sendMiniFullscreenToDisplay() {
-    // This should send a message to all open /display pages (not the preview iframe itself)
-    window.postMessage({ action: 'goFullScreen' }, '*');
-  }
+  
 
   openDisplayInNewWindow() {
     // Try to detect secondary monitor and use it
@@ -1099,34 +1085,6 @@ export class AdminComponent implements OnDestroy, OnInit {
     this.showConfirmationPopup('Programme saved!');
   }
 
-  // Toggle fullscreen for all open display windows (not preview iframe)
-  toggleFullscreenOnDisplays() {
-    console.log('[Admin] Sending fullscreen toggle command');
-    
-    // Method 1: Use localStorage to communicate with other windows/tabs
-    localStorage.setItem('fullscreen-command', JSON.stringify({
-      action: 'toggleFullScreen',
-      timestamp: Date.now()
-    }));
-    
-    // Method 2: Send to current window (for iframe preview)
-    window.postMessage({ action: 'toggleFullScreen' }, '*');
-    
-    // Method 3: Try to send to all windows (if we have references)
-    try {
-      // Send message to any iframe in current page
-      const iframes = document.querySelectorAll('iframe');
-      iframes.forEach(iframe => {
-        if (iframe.contentWindow) {
-          iframe.contentWindow.postMessage({ action: 'toggleFullScreen' }, '*');
-        }
-      });
-    } catch (e) {
-      console.log('[Admin] Could not send to iframes:', e);
-    }
-    
-    this.showConfirmationPopup('Fullscreen toggle command sent to display windows');
-  }
 
   // Populate localStorage with default sample programmes if none exist
   populateDefaultProgrammes() {
