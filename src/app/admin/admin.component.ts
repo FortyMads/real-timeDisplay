@@ -79,6 +79,12 @@ export class AdminComponent implements OnDestroy, OnInit {
     {
       name: 'Conference Day',
       data: 'Opening Remarks;09:00;15\nKeynote;09:15;45\nBreak;10:00;15\nSession 1;10:15;60\nLunch;11:15;60'
+    },
+    {
+      // Assumptions: durations derived from typical service flow and the provided start times
+      // 09:15 Prayer (35m), 09:50 Worship (30m), 10:20 Word (70m), 11:30 Admin and Announcements (15m)
+      name: 'Default Sunday',
+      data: 'Prayer;09:15;35\nWorship;09:50;30\nWord;10:20;70\nAdmin and Announcements;11:30;15'
     }
   ];
 
@@ -1053,12 +1059,13 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   // Populate localStorage with default sample programmes if none exist
   populateDefaultProgrammes() {
-    const keys = Object.keys(localStorage).filter(k => k.startsWith('programme-'));
-    if (keys.length === 0) {
-      this.defaultProgrammes.forEach(prog => {
-        localStorage.setItem('programme-' + prog.name, prog.data);
-      });
-    }
+    // Ensure each default exists once; don't overwrite user changes
+    this.defaultProgrammes.forEach(prog => {
+      const key = 'programme-' + prog.name;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, prog.data);
+      }
+    });
   }
 
   // For editing loaded programme (add missing properties)
