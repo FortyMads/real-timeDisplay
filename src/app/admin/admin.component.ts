@@ -36,9 +36,6 @@ export class AdminComponent implements OnDestroy, OnInit {
   // For skip-to-any-item
   selectedSkipIndex: number | null = null;
   futureItems: { index: number; title: string; startTime: string }[] = [];
-  // For go-to-previous
-  selectedPreviousIndex: number | null = null;
-  previousItems: { index: number; title: string; startTime: string }[] = [];
 
   // Tab selection for UI (default to current activity)
   selectedTab: 'input' | 'schedule' | 'current' | 'announcements' = 'current';
@@ -301,20 +298,7 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.selectedSkipIndex = null;
     }
 
-    // Also compute previous items (completed or already started in the past)
-    this.previousItems = this.schedule
-      .map((item, idx) => ({ index: idx, title: item.title, startTime: item.startTime, startDate: item.startDate, actualStart: item.actualStart, actualEnd: item.actualEnd }))
-      .filter(item => {
-        return !!item.actualEnd || (!!item.actualStart) || (!!item.startDate && item.startDate <= now);
-      })
-      .map(item => ({ index: item.index, title: item.title, startTime: item.startTime }));
-
-    // Default to most recent previous item
-    if (this.previousItems.length > 0 && (this.selectedPreviousIndex === null || !this.previousItems.some(p => p.index === this.selectedPreviousIndex))) {
-      this.selectedPreviousIndex = this.previousItems[this.previousItems.length - 1].index;
-    } else if (this.previousItems.length === 0) {
-      this.selectedPreviousIndex = null;
-    }
+  // Previous item selection removed per request
   }
 
   skipToSelected(): void {
@@ -738,47 +722,7 @@ export class AdminComponent implements OnDestroy, OnInit {
     }
   }
 
-  // Start the selected previous item now
-  goToPreviousSelected() {
-    if (this.selectedPreviousIndex === null) return;
-    const now = new Date();
-    const targetIdx = this.selectedPreviousIndex;
-
-    // End any currently running activity
-    const runningIdx = this.schedule.findIndex(p => p.actualStart && !p.actualEnd);
-    if (runningIdx !== -1) {
-      this.schedule[runningIdx].actualEnd = now;
-    }
-
-    // Start the selected previous item now
-    const target = this.schedule[targetIdx];
-    target.actualStart = now;
-    target.startDate = now;
-    // Reset pause state when restarting
-    target.paused = false;
-    target.pausedAt = undefined;
-    target.totalPausedMs = 0;
-    target.endDate = this.addDuration(now, target.duration);
-
-    // For items before targetIdx, mark them as completed if they were in progress without end
-    for (let i = 0; i < targetIdx; i++) {
-      const item = this.schedule[i];
-      if (item.actualStart && !item.actualEnd) {
-        item.actualEnd = now;
-      }
-    }
-
-    // For items after targetIdx that haven't started yet, leave them pending; don't recalculate times here
-    // This preserves the plan; operator can Start Next when ready.
-
-    // Persist and broadcast
-    this.sharedSchedule.setSchedule(this.schedule);
-    localStorage.setItem('programme-refresh', Date.now().toString());
-    this.schedule = this.sharedSchedule.getSchedule();
-    this.updateCurrentActivity();
-    this.updateFutureItems();
-    this.showConfirmationPopup(`Re-started: ${target.title}`);
-  }
+  // Previous navigation removed per request
 
   // End the entire programme and clear the table
   endProgramme() {

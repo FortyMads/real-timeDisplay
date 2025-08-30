@@ -182,14 +182,6 @@
             <button class="skip-btn" (click)="skipToSelected()" [disabled]="selectedSkipIndex === null" style="font-size: 1.05rem;">Skip To</button>
           </div>
 
-          <div class="previous-section" style="display: flex; flex-direction: row; align-items: center; gap: 0.7rem; justify-content: center; width: 100%; margin-top: 0.7rem; flex-wrap: wrap;">
-            <label for="prev-to" style="margin: 0; font-size: 1.05rem;">Previous item:</label>
-            <select id="prev-to" [(ngModel)]="selectedPreviousIndex" class="skip-dropdown" style="min-width: 160px; font-size: 1.05rem;">
-              <option [ngValue]="null" disabled selected>select item</option>
-              <option *ngFor="let item of previousItems; let i = index" [ngValue]="item.index">{{ item.title }} ({{ item.startTime }})</option>
-            </select>
-            <button class="skip-btn" (click)="goToPreviousSelected()" [disabled]="selectedPreviousIndex === null" style="font-size: 1.05rem;">Go Previous</button>
-          </div>
         </div>
       </div>
       <div style="display:flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
