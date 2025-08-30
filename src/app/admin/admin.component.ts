@@ -36,6 +36,9 @@ export class AdminComponent implements OnDestroy, OnInit {
   // For skip-to-any-item
   selectedSkipIndex: number | null = null;
   futureItems: { index: number; title: string; startTime: string }[] = [];
+  // For go-to-previous
+  selectedPreviousIndex: number | null = null;
+  previousItems: { index: number; title: string; startTime: string }[] = [];
 
   // Tab selection for UI (default to current activity)
   selectedTab: 'input' | 'schedule' | 'current' | 'announcements' = 'current';
@@ -296,6 +299,21 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.selectedSkipIndex = this.futureItems[0].index;
     } else if (this.futureItems.length === 0) {
       this.selectedSkipIndex = null;
+    }
+
+    // Also compute previous items (completed or already started in the past)
+    this.previousItems = this.schedule
+      .map((item, idx) => ({ index: idx, title: item.title, startTime: item.startTime, startDate: item.startDate, actualStart: item.actualStart, actualEnd: item.actualEnd }))
+      .filter(item => {
+        return !!item.actualEnd || (!!item.actualStart) || (!!item.startDate && item.startDate <= now);
+      })
+      .map(item => ({ index: item.index, title: item.title, startTime: item.startTime }));
+
+    // Default to most recent previous item
+    if (this.previousItems.length > 0 && (this.selectedPreviousIndex === null || !this.previousItems.some(p => p.index === this.selectedPreviousIndex))) {
+      this.selectedPreviousIndex = this.previousItems[this.previousItems.length - 1].index;
+    } else if (this.previousItems.length === 0) {
+      this.selectedPreviousIndex = null;
     }
   }
 
@@ -718,6 +736,59 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.updateCurrentActivity();
       this.showConfirmationPopup(`Ended: ${this.schedule[runningIdx].title}`);
     }
+  }
+
+  // Start the selected previous item now
+  goToPreviousSelected() {
+    if (this.selectedPreviousIndex === null) return;
+    const now = new Date();
+    const targetIdx = this.selectedPreviousIndex;
+
+    // End any currently running activity
+    const runningIdx = this.schedule.findIndex(p => p.actualStart && !p.actualEnd);
+    if (runningIdx !== -1) {
+      this.schedule[runningIdx].actualEnd = now;
+    }
+
+    // Start the selected previous item now
+    const target = this.schedule[targetIdx];
+    target.actualStart = now;
+    target.startDate = now;
+    // Reset pause state when restarting
+    target.paused = false;
+    target.pausedAt = undefined;
+    target.totalPausedMs = 0;
+    target.endDate = this.addDuration(now, target.duration);
+
+    // Adjust subsequent items that haven't started yet to follow sequentially
+    let currentEnd = target.endDate!;
+    for (let i = targetIdx + 1; i < this.schedule.length; i++) {
+      const item = this.schedule[i];
+      if (!item.actualStart && !item.actualEnd) {
+        item.startDate = new Date(currentEnd);
+        item.endDate = this.addDuration(currentEnd, item.duration);
+        currentEnd = item.endDate!;
+        item.startTime = `${item.startDate!.getHours().toString().padStart(2, '0')}:${item.startDate!.getMinutes().toString().padStart(2, '0')}`;
+      }
+    }
+
+    // Persist and broadcast
+    this.sharedSchedule.setSchedule(this.schedule);
+    localStorage.setItem('programme-refresh', Date.now().toString());
+    this.schedule = this.sharedSchedule.getSchedule();
+    this.updateCurrentActivity();
+    this.updateFutureItems();
+    this.showConfirmationPopup(`Re-started: ${target.title}`);
+  }
+
+  // End the entire programme and clear the table
+  endProgramme() {
+    this.schedule = [];
+    this.sharedSchedule.setSchedule(this.schedule);
+    localStorage.setItem('programme-refresh', Date.now().toString());
+    this.updateCurrentActivity();
+    this.updateFutureItems();
+    this.showConfirmationPopup('Programme ended and cleared.');
   }
 
   // Pause/Resume current activity without changing its original duration

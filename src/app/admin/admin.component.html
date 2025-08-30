@@ -168,14 +168,13 @@
   <iframe id="miniDisplay" #miniDisplayIframe src="display" width="320" height="180" style="border:1px solid #8ec6ff; background:#fff; overflow:hidden; display:block; border-radius: 6px;" scrolling="no"></iframe>
         <div class="admin-actions" style="margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1.1rem; width: 100%;">
           <!-- Manual Activity Control Buttons -->
-          <div class="manual-controls" style="display: flex; flex-direction: row; gap: 1rem; margin-bottom: 1rem;">
-            <button class="start-next-btn" (click)="startNextActivity()" style="width: 140px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">Start Next</button>
-            <button class="end-current-btn" (click)="endCurrentActivity()" style="width: 140px; font-size: 1.08rem; background: #f57c00; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">End Current</button>
-              <button class="pause-btn" (click)="togglePauseCurrent()" style="width: 140px; font-size: 1.08rem; background: #6c757d; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">Pause/Resume</button>
+          <div class="manual-controls" style="display: flex; flex-direction: row; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <button class="start-next-btn" (click)="startNextActivity()" style="width: 160px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">Start Next</button>
+            <button class="pause-btn" (click)="togglePauseCurrent()" style="width: 160px; font-size: 1.08rem; background: #6c757d; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">Pause/Resume</button>
           </div>
           <button class="end-now-btn" (click)="endNow()" style="width: 220px; font-size: 1.08rem;">End Now</button>
           <button class="fullscreen-btn" (click)="toggleFullscreenOnDisplays()" style="width: 220px; font-size: 1.08rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; margin-top: 0.7rem; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">Toggle Fullscreen on Display</button>
-          <div class="skip-section" style="display: flex; flex-direction: row; align-items: center; gap: 0.7rem; justify-content: center; width: 100%;">
+          <div class="skip-section" style="display: flex; flex-direction: row; align-items: center; gap: 0.7rem; justify-content: center; width: 100%; flex-wrap: wrap;">
             <label for="skip-to" style="margin: 0; font-size: 1.05rem;">Skip to item:</label>
             <select id="skip-to" [(ngModel)]="selectedSkipIndex" class="skip-dropdown" style="min-width: 140px; font-size: 1.05rem;">
               <option [ngValue]="null" disabled selected>select item</option>
@@ -183,9 +182,21 @@
             </select>
             <button class="skip-btn" (click)="skipToSelected()" [disabled]="selectedSkipIndex === null" style="font-size: 1.05rem;">Skip To</button>
           </div>
+
+          <div class="previous-section" style="display: flex; flex-direction: row; align-items: center; gap: 0.7rem; justify-content: center; width: 100%; margin-top: 0.7rem; flex-wrap: wrap;">
+            <label for="prev-to" style="margin: 0; font-size: 1.05rem;">Previous item:</label>
+            <select id="prev-to" [(ngModel)]="selectedPreviousIndex" class="skip-dropdown" style="min-width: 160px; font-size: 1.05rem;">
+              <option [ngValue]="null" disabled selected>select item</option>
+              <option *ngFor="let item of previousItems; let i = index" [ngValue]="item.index">{{ item.title }} ({{ item.startTime }})</option>
+            </select>
+            <button class="skip-btn" (click)="goToPreviousSelected()" [disabled]="selectedPreviousIndex === null" style="font-size: 1.05rem;">Go Previous</button>
+          </div>
         </div>
       </div>
-      <button (click)="openDisplayInNewWindow()" class="open-display-btn" style="margin-top: 1.2rem; width: 220px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">Open Display in New Window</button>
+      <div style="display:flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+        <button (click)="openDisplayInNewWindow()" class="open-display-btn" style="margin-top: 1.2rem; width: 220px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">Open Display in New Window</button>
+        <button (click)="endProgramme()" class="open-display-btn" style="margin-top: 1.2rem; width: 220px; font-size: 1.08rem; background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">End Programme</button>
+      </div>
       
       <!-- Display Settings -->
       <div class="display-settings" style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
