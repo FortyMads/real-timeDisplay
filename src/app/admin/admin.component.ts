@@ -85,6 +85,10 @@ export class AdminComponent implements OnDestroy, OnInit {
       // 09:15 Prayer (35m), 09:50 Worship (30m), 10:20 Word (70m), 11:30 Admin and Announcements (15m)
       name: 'Default Sunday',
       data: 'Prayer;09:15;35\nWorship;09:50;30\nWord;10:20;70\nAdmin and Announcements;11:30;15'
+    },
+    {
+      name: 'Friday Default',
+      data: 'Prayer;19:00;120'
     }
   ];
 
@@ -128,6 +132,7 @@ export class AdminComponent implements OnDestroy, OnInit {
   ngOnInit() {
     this.populateDefaultProgrammes();
     this.loadSavedProgrammes();
+  this.maybePromptLoadDefaultForToday();
   }
 
   ngOnDestroy(): void {
@@ -221,6 +226,61 @@ export class AdminComponent implements OnDestroy, OnInit {
     const [h, m, s] = time.split(':').map(Number);
     const date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, s || 0);
     return date;
+  }
+
+  /**
+   * Optionally prompt to load a default programme based on today's weekday.
+   * - Sunday -> Default Sunday
+   * - Friday -> Friday Default
+   * Prompts only if no schedule is currently loaded.
+   * Honors provided times in the preset.
+   */
+  private maybePromptLoadDefaultForToday() {
+    try {
+      // Skip if we already have a schedule
+      const existing = this.sharedSchedule.getSchedule();
+      if (existing && existing.length > 0) return;
+
+      const day = new Date().getDay(); // 0=Sun, 5=Fri
+      let candidateName: string | null = null;
+      if (day === 0) candidateName = 'Default Sunday';
+      if (day === 5) candidateName = 'Friday Default';
+      if (!candidateName) return;
+
+      const preset = this.defaultProgrammes.find(p => p.name === candidateName);
+      if (!preset) return;
+
+      const shouldLoad = confirm(`Load preset "${candidateName}" for today?`);
+      if (!shouldLoad) return;
+
+      // Parse preset data honoring provided times
+      const lines = preset.data.split('\n').map(l => l.trim()).filter(Boolean);
+      const items: Programme[] = [];
+      for (const line of lines) {
+        const parts = line.split(';');
+        if (parts.length === 3) {
+          const title = parts[0].trim();
+          const timeStr = parts[1].trim();
+          const duration = parts[2].trim();
+          const startDate = this.parseStartTime(timeStr);
+          const endDate = this.addDuration(startDate, duration);
+          items.push({
+            title,
+            startTime: timeStr,
+            duration,
+            startDate,
+            endDate
+          });
+        }
+      }
+      this.schedule = items;
+      this.sharedSchedule.setSchedule(this.schedule);
+      localStorage.setItem('programme-refresh', Date.now().toString());
+      this.updateFutureItems();
+      this.showConfirmationPopup(`${candidateName} loaded.`);
+    } catch (e) {
+      console.warn('Could not load default for today:', e);
+    }
   }
 
   addDuration(start: Date, duration: string): Date {
