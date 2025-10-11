@@ -68,14 +68,41 @@ body, html {
   position: absolute;
   right: 2rem;
   top: 1.25rem;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #a0aec0;
+  font-size: 8rem; /* 4x increase from 2rem */
+  font-weight: 700;
+  color: #ffffff; /* white */
   letter-spacing: 0.05em;
-  opacity: 0.9;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  opacity: 0.98;
+  /* Strong white glow */
+  text-shadow:
+    0 0 6px rgba(255,255,255,0.75),
+    0 0 16px rgba(255,255,255,0.55),
+    0 0 32px rgba(255,255,255,0.35),
+    0 8px 24px rgba(0,0,0,0.25);
   pointer-events: none;
   user-select: none;
+}
+
+/* Responsive scaling for header clock */
+@media (max-width: 1920px) {
+  .header-clock { font-size: 6rem; }
+}
+@media (max-width: 1366px) {
+  .header-clock { font-size: 4rem; }
+}
+@media (max-width: 1024px) {
+  .header-clock { font-size: 3rem; }
+}
+
+/* Auto-hide fullscreen icon when in fullscreen */
+.display-container:fullscreen .fullscreen-icon-btn,
+.display-container:-webkit-full-screen .fullscreen-icon-btn {
+  display: none !important;
+}
+/* Hide when the whole document is fullscreen as well */
+:fullscreen .fullscreen-icon-btn,
+:-webkit-full-screen .fullscreen-icon-btn {
+  display: none !important;
 }
 
 /* === TIMER SECTION === */
