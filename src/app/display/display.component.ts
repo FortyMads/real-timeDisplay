@@ -43,6 +43,8 @@ export class DisplayComponent implements OnInit, OnDestroy {
   remainingColor: string = 'white';
   /** Timer interval for updating current activity */
   private timer: any;
+  /** Current time for header clock */
+  currentNow: Date = new Date();
 
   /** Current announcement text */
   announcement: string = '';
@@ -65,6 +67,7 @@ export class DisplayComponent implements OnInit, OnDestroy {
     this.updateCurrentActivity();
     this.timer = setInterval(() => {
       this.updateCurrentActivity();
+      this.currentNow = new Date();
       this.checkAnnouncementExpiry();
     }, 1000);
     // Save window position on move/close

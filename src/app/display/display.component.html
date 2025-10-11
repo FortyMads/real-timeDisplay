@@ -11,6 +11,7 @@
   <div *ngIf="currentTitle !== 'No active activity' && !announcement; else noActive" class="main-content">
     <!-- Header section with title -->
     <div class="header-section">
+      <div class="header-clock" *ngIf="currentNow as now">{{ now | date:'EEE d MMM • HH:mm:ss' }}</div>
       <div class="current-activity-label">CURRENT ACTIVITY</div>
       <div class="current-title">{{ currentTitle }}</div>
     </div>
