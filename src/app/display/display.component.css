@@ -36,7 +36,7 @@ body, html {
 /* === HEADER SECTION === */
 .header-section {
   flex: 0 0 auto;
-  padding: 6rem 6rem 2rem 6rem; /* extra top padding for large clock */
+  padding: 12rem 12rem 2rem 6rem; /* extra right padding to reserve space for clock */
   text-align: center;
   background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -50,6 +50,8 @@ body, html {
   gap: 1rem;
   flex-wrap: wrap;
   justify-content: center;
+  position: relative;
+  z-index: 2; /* above the clock */
 }
 
 /* current-activity-label removed per request */
@@ -61,7 +63,7 @@ body, html {
   line-height: 1.2;
   letter-spacing: -0.02em;
   text-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  max-width: 90%;
+  max-width: 70%; /* avoid reaching the clock area */
   margin: 0 auto;
   word-wrap: break-word;
 }
@@ -84,6 +86,7 @@ body, html {
     0 8px 24px rgba(0,0,0,0.25);
   pointer-events: none;
   user-select: none;
+  z-index: 1;
 }
 
 /* Responsive scaling for header clock */
@@ -305,6 +308,7 @@ body, html {
   .time-value { font-size: 36rem; }
   .no-active-title { font-size: 3.5rem; }
   .announcement-text { font-size: 3.5rem; }
+  .header-section { padding-top: 9rem; }
 }
 
 @media (max-width: 1366px) {
@@ -313,6 +317,7 @@ body, html {
   .no-active-title { font-size: 3rem; }
   .announcement-text { font-size: 3rem; }
   .header-section, .footer-section { padding-left: 4rem; padding-right: 4rem; }
+  .header-section { padding-top: 7rem; }
 }
 
 @media (max-width: 1024px) {
@@ -321,6 +326,7 @@ body, html {
   .no-active-title { font-size: 2.5rem; }
   .announcement-text { font-size: 2.5rem; }
   .header-section, .footer-section { padding-left: 3rem; padding-right: 3rem; }
+  .header-section { padding-top: 5rem; }
 }
 
 /* === COLOR VARIATIONS FOR TIMER STATES === */
