@@ -1,4 +1,6 @@
 <div class="display-container" id="displayContainer">
+  <!-- Always-visible header clock -->
+  <div class="header-clock" *ngIf="currentNow as now">{{ now | date:'EEE d MMM • h:mm:ss a' }}</div>
   <!-- Announcement overlay -->
   <div *ngIf="announcement" class="announcement-overlay">
     <div class="announcement-content">
@@ -11,7 +13,6 @@
   <div *ngIf="currentTitle !== 'No active activity' && !announcement; else noActive" class="main-content">
     <!-- Header section with title -->
     <div class="header-section">
-      <div class="header-clock" *ngIf="currentNow as now">{{ now | date:'EEE d MMM • HH:mm:ss' }}</div>
       <div class="current-activity-label">CURRENT ACTIVITY</div>
       <div class="current-title">{{ currentTitle }}</div>
     </div>
