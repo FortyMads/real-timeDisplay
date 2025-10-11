@@ -34,7 +34,7 @@ body, html {
 /* === HEADER SECTION === */
 .header-section {
   flex: 0 0 auto;
-  padding: 4rem 6rem 2rem 6rem;
+  padding: 6rem 6rem 2rem 6rem; /* extra top padding for large clock */
   text-align: center;
   background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -51,14 +51,19 @@ body, html {
 }
 
 .current-activity-label {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #93a1b5;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #cbd5e1;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  opacity: 0.85;
+  opacity: 0.95;
   white-space: nowrap;
   align-self: center;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25) inset, 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .current-title {
@@ -261,7 +266,7 @@ body, html {
 .fullscreen-icon-btn {
   position: absolute;
   top: 2rem;
-  right: 2rem;
+  left: 2rem; /* move left to avoid overlapping the large clock */
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(10px);
   color: #ffffff;
