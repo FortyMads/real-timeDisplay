@@ -11,10 +11,12 @@
   
   <!-- Main timer display -->
   <div *ngIf="currentTitle !== 'No active activity' && !announcement; else noActive" class="main-content">
-    <!-- Header section with title -->
+    <!-- Header section with title and inline activity label -->
     <div class="header-section">
-      <div class="current-activity-label">CURRENT ACTIVITY</div>
-      <div class="current-title">{{ currentTitle }}</div>
+      <div class="header-title-row">
+        <div class="current-title">{{ currentTitle }}</div>
+        <div class="current-activity-label">CURRENT ACTIVITY</div>
+      </div>
     </div>
     
     <!-- Main timer section -->

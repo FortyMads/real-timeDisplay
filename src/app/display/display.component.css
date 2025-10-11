@@ -41,14 +41,24 @@ body, html {
   position: relative;
 }
 
+/* Title row: place title and the label side by side */
+.header-title-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 .current-activity-label {
-  font-size: 1.65rem;
-  font-weight: 500;
-  color: #a0aec0;
-  letter-spacing: 0.15em;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #93a1b5;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  margin-bottom: 1rem;
-  opacity: 0.8;
+  opacity: 0.85;
+  white-space: nowrap;
+  align-self: center;
 }
 
 .current-title {
