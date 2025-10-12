@@ -64,8 +64,10 @@ body, html {
   letter-spacing: -0.02em;
   text-shadow: 0 4px 20px rgba(0,0,0,0.3);
   max-width: 90%;
-  margin: 0 auto;
-  word-wrap: break-word;
+  margin: 1.25rem auto 0; /* add space below the clock */
+  white-space: nowrap;        /* force single line */
+  overflow: hidden;           /* clip overflow */
+  text-overflow: ellipsis;    /* show ellipsis when too long */
 }
 
 /* Header clock */
