@@ -1,6 +1,9 @@
 <div class="display-container" id="displayContainer">
-  <!-- Always-visible header clock -->
-  <div class="header-clock" *ngIf="currentNow as now">{{ now | date:'EEE d MMM • h:mm:ss a' }}</div>
+  <!-- Always-visible header clock (two lines: date, then time) -->
+  <div class="header-clock" *ngIf="currentNow as now">
+    <div class="clock-date">{{ now | date:'EEE d MMM' }}</div>
+    <div class="clock-time">{{ now | date:'h:mm:ss a' }}</div>
+  </div>
   <!-- Announcement overlay -->
   <div *ngIf="announcement" class="announcement-overlay">
     <div class="announcement-content">
