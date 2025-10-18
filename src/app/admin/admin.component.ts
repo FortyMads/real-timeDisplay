@@ -278,6 +278,11 @@ export class AdminComponent implements OnDestroy, OnInit {
       localStorage.setItem('programme-refresh', Date.now().toString());
       this.updateFutureItems();
       this.showConfirmationPopup(`${candidateName} loaded.`);
+      
+      // Auto-open display window after loading default schedule
+      setTimeout(() => {
+        this.openDisplayInNewWindow();
+      }, 1000); // Small delay to ensure schedule is fully loaded
     } catch (e) {
       console.warn('Could not load default for today:', e);
     }
