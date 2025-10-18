@@ -205,13 +205,73 @@ export class DisplayComponent implements OnInit, OnDestroy {
         this.remainingColor = 'blue';
       }
       console.log('[Display] Manual activity in progress:', this.currentTitle, 'Remaining:', this.remainingTime);
+    } else if (this.schedule.length > 0) {
+      // Check if we have a schedule but nothing started yet
+      const firstActivity = this.schedule[0];
+      
+      if (firstActivity && firstActivity.startDate) {
+        const timeUntilStart = firstActivity.startDate.getTime() - now.getTime();
+        
+        if (timeUntilStart > 0) {
+          // Show countdown to first activity
+          this.currentTitle = `Starting Soon: ${firstActivity.title}`;
+          this.remainingTime = this.formatMs(timeUntilStart);
+          this.remainingColor = 'white';
+          console.log('[Display] Countdown to first activity:', this.remainingTime);
+          
+          // Auto-start when time arrives (within 5 seconds tolerance)
+          if (timeUntilStart <= 5000) {
+            console.log('[Display] Auto-starting first activity');
+            this.autoStartFirstActivity();
+          }
+        } else {
+          // Time has passed, should have started - show as ready
+          this.currentTitle = `Ready: ${firstActivity.title}`;
+          this.remainingTime = 'Click Start to Begin';
+          this.remainingColor = 'blue';
+        }
+      } else {
+        this.currentTitle = 'Schedule loaded';
+        this.remainingTime = 'Ready to start';
+        this.remainingColor = 'gray';
+      }
     } else {
-      // No manually started activity is running
-      // In manual control mode, don't show scheduled activities to avoid confusion
+      // No schedule loaded
       this.currentTitle = 'No active activity';
       this.remainingTime = 'Waiting for manual start';
       this.remainingColor = 'gray';
       console.log('[Display] No active activity - waiting for manual start');
+    }
+  }
+
+  /**
+   * Auto-start the first activity (called when countdown reaches zero)
+   */
+  private autoStartFirstActivity(): void {
+    if (this.schedule.length > 0) {
+      const now = new Date();
+      const firstActivity = this.schedule[0];
+      
+      // Start the first activity
+      firstActivity.actualStart = now;
+      firstActivity.startDate = now;
+      firstActivity.endDate = this.addDuration(now, firstActivity.duration);
+      
+      // Save to localStorage to sync with admin
+      localStorage.setItem('programme-schedule', JSON.stringify(this.schedule.map(p => ({
+        ...p,
+        startDate: p.startDate ? p.startDate.toISOString() : undefined,
+        endDate: p.endDate ? p.endDate.toISOString() : undefined,
+        actualStart: p.actualStart ? p.actualStart.toISOString() : undefined,
+        actualEnd: p.actualEnd ? p.actualEnd.toISOString() : undefined,
+        pausedAt: p.pausedAt ? p.pausedAt.toISOString() : undefined,
+        totalPausedMs: p.totalPausedMs || 0
+      }))));
+      
+      // Notify other windows
+      localStorage.setItem('programme-refresh', Date.now().toString());
+      
+      console.log('[Display] Auto-started first activity:', firstActivity.title);
     }
   }
 

@@ -81,10 +81,9 @@ export class AdminComponent implements OnDestroy, OnInit {
       data: 'Opening Remarks;09:00;15\nKeynote;09:15;45\nBreak;10:00;15\nSession 1;10:15;60\nLunch;11:15;60'
     },
     {
-      // Assumptions: durations derived from typical service flow and the provided start times
-      // 09:15 Prayer (35m), 09:50 Worship (30m), 10:20 Word (70m), 11:30 Admin and Announcements (15m)
+      // Sunday service starts at 9:30 AM - Prayer (35m), Worship (30m), Word (70m), Admin (15m)
       name: 'Default Sunday',
-      data: 'Prayer;09:15;35\nWorship;09:50;30\nWord;10:20;70\nAdmin and Announcements;11:30;15'
+      data: 'Prayer;09:30;35\nWorship;10:05;30\nWord;10:35;70\nAdmin and Announcements;11:45;15'
     },
     {
       name: 'Friday Default',
