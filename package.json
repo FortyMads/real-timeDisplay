@@ -4,8 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-  "build": "ng build",
-  "build:ghpages": "ng build --configuration production --base-href /real-timeDisplay/ --deploy-url /real-timeDisplay/",
+    "build": "ng build",
+    "build:ghpages": "ng build --configuration production --base-href /real-timeDisplay/ --deploy-url /real-timeDisplay/",
+    "build:portable": "npm run build:ghpages && node create-portable.js",
     "watch": "ng build --watch --configuration development"
   },
   "prettier": {
