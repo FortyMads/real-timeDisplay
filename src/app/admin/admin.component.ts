@@ -250,8 +250,8 @@ export class AdminComponent implements OnDestroy, OnInit {
       const preset = this.defaultProgrammes.find(p => p.name === candidateName);
       if (!preset) return;
 
-      const shouldLoad = confirm(`Load preset "${candidateName}" for today?`);
-      if (!shouldLoad) return;
+      // Auto-load without user confirmation
+      console.log(`[Admin] Auto-loading "${candidateName}" for today`);
 
       // Parse preset data honoring provided times
       const lines = preset.data.split('\n').map(l => l.trim()).filter(Boolean);
