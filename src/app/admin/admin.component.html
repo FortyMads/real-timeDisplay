@@ -1,231 +1,350 @@
 <div class="admin-container">
-  <h2 class="admin-title">Activity Admin Panel</h2>
-
-  <div class="admin-tabs">
-    <button [class.active]="selectedTab === 'schedule'" (click)="selectedTab = 'schedule'">View Programme</button>
-    <button [class.active]="selectedTab === 'input'" (click)="selectedTab = 'input'">Input Activity</button>
-    <button [class.active]="selectedTab === 'current'" (click)="selectedTab = 'current'">Current Activity</button>
-    <button [class.active]="selectedTab === 'announcements'" (click)="selectedTab = 'announcements'">Announcements</button>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1 class="admin-title" style="margin: 0;">Activity Admin Panel</h1>
+    <button (click)="toggleTheme()" class="btn-secondary" style="padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+      <svg *ngIf="!isDarkMode" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <svg *ngIf="isDarkMode" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+      {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
+    </button>
   </div>
 
-  <!-- Input Activity Tab -->
-  <div *ngIf="selectedTab === 'input'" class="admin-card">
-    <button (click)="toggleAddActivityModal()" class="add-activity-btn">Add Activity (Beginner Friendly)</button>
-    <button (click)="toggleMultiActivityModal()" class="add-activity-btn add-multi-btn">Add Multiple Activities</button>
-    <!-- Confirmation Popup -->
-    <div *ngIf="showConfirmation" class="confirmation-popup">
-      {{ confirmationMessage }}
-    </div>
-    <!-- Add Activity Modal -->
-    <div *ngIf="showAddActivityModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>Add Activity</h3>
-  <form (ngSubmit)="addProgramme()" #activityForm="ngForm" class="programme-form">
-          <div class="form-group">
-            <label>Title:
-              <input type="text" [(ngModel)]="newTitle" name="newTitle" required class="input-field" />
-            </label>
+  <div class="admin-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <button class="sidebar-btn" [class.active]="selectedTab === 'dashboard'" (click)="selectedTab = 'dashboard'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
+      </button>
+      <button class="sidebar-btn" [class.active]="selectedTab === 'schedule'" (click)="selectedTab = 'schedule'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"/>
+          <line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/>
+          <line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Schedule
+      </button>
+      <button class="sidebar-btn" [class.active]="selectedTab === 'input'" (click)="selectedTab = 'input'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Activity
+      </button>
+      <button class="sidebar-btn" [class.active]="selectedTab === 'current'" (click)="selectedTab = 'current'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+        Current Activity
+      </button>
+      <button class="sidebar-btn" [class.active]="selectedTab === 'announcements'" (click)="selectedTab = 'announcements'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        Announcements
+      </button>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- Input Activity Tab -->
+      <div *ngIf="selectedTab === 'input'" class="admin-card">
+        <h2 style="margin: 0 0 1.5rem 0; font-size: 1.75rem; font-weight: 700; color: var(--text-primary);">Add Activities</h2>
+        
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+          <button (click)="toggleAddActivityModal()" class="btn-success">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add Single Activity
+          </button>
+          <button (click)="toggleMultiActivityModal()" class="btn-secondary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add Multiple Activities
+          </button>
+        </div>
+
+        <!-- Confirmation Popup -->
+        <div *ngIf="showConfirmation" class="confirmation-popup">
+          {{ confirmationMessage }}
+        </div>
+
+        <!-- Add Activity Modal -->
+        <div *ngIf="showAddActivityModal" class="modal-overlay">
+          <div class="modal-content">
+            <h3>Add Activity</h3>
+            <form (ngSubmit)="addProgramme()" #activityForm="ngForm" class="programme-form">
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" [(ngModel)]="newTitle" name="newTitle" required class="input-field" placeholder="Enter activity title" />
+              </div>
+              <div class="form-group">
+                <label>Start Time</label>
+                <input type="time" [(ngModel)]="newStartTime" name="newStartTime" [required]="schedule.length === 0" [disabled]="schedule.length > 0" class="input-field" />
+                <small *ngIf="schedule.length > 0" style="display: block; color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">Auto-scheduled after previous activity</small>
+              </div>
+              <div class="form-group">
+                <label>Duration (minutes)</label>
+                <input type="number" [(ngModel)]="newDuration" name="newDuration" min="1" required class="input-field" placeholder="e.g., 30" />
+              </div>
+              <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" [disabled]="!activityForm.form.valid" class="btn-success">Add Activity</button>
+                <button type="button" (click)="showAddActivityModal = false" class="btn-secondary">Cancel</button>
+              </div>
+            </form>
           </div>
-          <div class="form-group">
-            <label>Start Time:
-              <input type="time" [(ngModel)]="newStartTime" name="newStartTime" [required]="schedule.length === 0" [disabled]="schedule.length > 0" class="input-field" />
-              <small *ngIf="schedule.length > 0" style="display: block; color: #666; font-size: 0.8rem; margin-top: 0.2rem;">Auto-scheduled after previous activity</small>
-            </label>
+        </div>
+
+        <!-- Add Multiple Activities Modal -->
+        <div *ngIf="showMultiActivityModal" class="modal-overlay">
+          <div class="modal-content">
+            <h3>Add Multiple Activities</h3>
+            <form #multiForm="ngForm" class="programme-form">
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" [(ngModel)]="multiTitle" name="multiTitle" required class="input-field" placeholder="Enter activity title" />
+              </div>
+              <div class="form-group">
+                <label>Start Time</label>
+                <input type="time" [(ngModel)]="multiStartTime" name="multiStartTime" required class="input-field" [disabled]="schedule.length > 0" />
+                <small *ngIf="schedule.length > 0" style="display: block; color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">
+                  Auto-scheduled after previous activity
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Duration (minutes)</label>
+                <input type="number" [(ngModel)]="multiDuration" name="multiDuration" min="1" required class="input-field" placeholder="e.g., 30" />
+              </div>
+            </form>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end;">
+              <button (click)="addAnotherActivity()" [disabled]="!multiTitle || !multiDuration || (schedule.length === 0 && !multiStartTime)" class="btn-success">Add Another</button>
+              <button (click)="closeMultiActivityModal()" class="btn-secondary">Done</button>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Duration:
-              <input type="number" [(ngModel)]="newDuration" name="newDuration" min="1" required class="input-field" />
-              <span class="duration-label">minutes</span>
-            </label>
-          </div>
-          <button type="submit" [disabled]="!activityForm.form.valid" class="add-btn">Add</button>
-          <button type="button" (click)="showAddActivityModal = false" class="cancel-btn">Cancel</button>
-        </form>
-      </div>
-    </div>
-    <!-- Add Multiple Activities Modal -->
-    <div *ngIf="showMultiActivityModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3>Add Multiple Activities</h3>
-        <form #multiForm="ngForm" class="programme-form">
-          <div class="form-group">
-            <label>Title:
-              <input type="text" [(ngModel)]="multiTitle" name="multiTitle" required class="input-field" />
-            </label>
-          </div>
-          <div class="form-group">
-            <label>Start Time:
-              <input type="time" [(ngModel)]="multiStartTime" name="multiStartTime" required class="input-field" [disabled]="schedule.length > 0" />
-              <small *ngIf="schedule.length > 0" style="display: block; color: #666; font-size: 0.8rem; margin-top: 0.2rem;">
-                Auto-scheduled after previous activity
-              </small>
-            </label>
-          </div>
-          <div class="form-group">
-            <label>Duration:
-              <input type="number" [(ngModel)]="multiDuration" name="multiDuration" min="1" required class="input-field" />
-              <span class="duration-label">minutes</span>
-            </label>
-          </div>
-        </form>
-        <div class="modal-actions">
-          <button (click)="addAnotherActivity()" [disabled]="!multiTitle || !multiDuration || (schedule.length === 0 && !multiStartTime)" class="add-btn add-multi-btn">Add Another</button>
-          <button (click)="closeMultiActivityModal()" class="cancel-btn">Done</button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- View Programme Tab -->
-  <div *ngIf="selectedTab === 'schedule'" class="schedule-section">
-    <h3>Full Programme</h3>
-    <button class="save-schedule-btn" (click)="promptAndSaveProgramme()" style="margin-bottom: 1.2rem; background: #1976d2; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 1.5rem; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">Save Programme</button>
-    <!-- Saved Programmes Table (moved here) -->
-    <div class="saved-programmes-table" style="margin-bottom: 2rem;">
-      <h3 style="color: #1976d2; font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Saved Programmes</h3>
-      <table style="width: 100%; border-collapse: collapse; background: #f5f7fa; border-radius: 10px; box-shadow: 0 2px 8px rgba(30,64,175,0.07);">
-        <thead>
-          <tr style="background: #e3eaf5;">
-            <th style="padding: 0.7rem 1rem; text-align: left; font-size: 1.08rem; color: #1976d2;">Programme Name</th>
-            <th style="padding: 0.7rem 1rem; text-align: left; font-size: 1.08rem; color: #1976d2;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let prog of savedProgrammes">
-            <td style="padding: 0.7rem 1rem; font-weight: 600; color: #333;">{{ prog }}</td>
-            <td style="padding: 0.7rem 1rem;">
-              <button (click)="loadProgramme(prog)" style="background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 1.1rem; font-size: 1rem; cursor: pointer;">Load</button>
-              <button (click)="deleteProgramme(prog)" style="background: #d32f2f; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 1.1rem; font-size: 1rem; cursor: pointer; margin-left: 0.5rem;">Delete</button>
-            </td>
-          </tr>
-          <tr *ngIf="savedProgrammes.length === 0">
-            <td colspan="2" style="padding: 0.7rem 1rem; color: #888; font-size: 1.05rem; text-align: center;">No saved programmes yet.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <table class="schedule-table">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Start Time</th>
-          <th>Duration</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let item of schedule">
-          <td>{{ item.title }}</td>
-          <td>{{ item.startTime }}</td>
-          <td>{{ item.duration }}</td>
-          <td>
-            <span *ngIf="item.actualEnd">Completed</span>
-            <span *ngIf="!item.actualEnd && item.actualStart">In Progress</span>
-            <span *ngIf="!item.actualStart && !item.actualEnd">Pending</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+      <!-- Dashboard Tab -->
+      <div *ngIf="selectedTab === 'dashboard'" class="admin-card">
+        <h2 style="margin: 0 0 1.5rem 0; font-size: 1.75rem; font-weight: 700; color: var(--text-primary);">Dashboard</h2>
 
-  <!-- Current Programme Tab -->
-  <div *ngIf="selectedTab === 'current'" class="current-section">
-    <div class="current-card" style="background: #23283a; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.10); padding: 2rem 2.5rem; display: flex; flex-direction: column; align-items: center;">
-      <div class="current-title" style="font-size: 1.4rem; font-weight: 700; margin-bottom: 1.2rem; letter-spacing: 0.5px; display: flex; flex-direction: column; align-items: center;">
-        <span style="font-size: 1.15rem; margin-bottom: 0.5rem;">Current: <span>{{ currentTitle }}</span>
-          <button *ngIf="!editingCurrent && currentTitle !== 'No active activity'" (click)="startEditCurrent()" class="edit-btn" style="margin-left: 1rem; font-size: 1rem; background: #1976d2; color: #fff; border: none; border-radius: 5px; padding: 0.3rem 0.9rem; cursor: pointer;">Edit</button>
-        </span>
-        <span style="font-size: 3.2rem; font-weight: 900; color: #43a047; letter-spacing: 2px; margin-bottom: 0.5rem;">{{ remainingTime }}</span>
+        <!-- Quick Stats -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+          <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: var(--radius-xl); border: 1px solid var(--border-color);">
+            <div style="font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Total Activities</div>
+            <div style="font-size: 2.5rem; font-weight: 800; color: var(--accent-primary);">{{ schedule.length }}</div>
+          </div>
+          <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: var(--radius-xl); border: 1px solid var(--border-color);">
+            <div style="font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Current</div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">{{ currentTitle }}</div>
+          </div>
+          <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: var(--radius-xl); border: 1px solid var(--border-color);">
+            <div style="font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Time Remaining</div>
+            <div style="font-size: 2.5rem; font-weight: 800; color: var(--accent-primary);">{{ remainingTime }}</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">Quick Actions</h3>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <button (click)="selectedTab = 'input'" class="btn-secondary">Add Activity</button>
+          <button (click)="selectedTab = 'current'" class="btn-secondary">View Current</button>
+          <button (click)="openDisplayInNewWindow()" class="btn-success">Open Display</button>
+        </div>
       </div>
+
+      <!-- View Programme Tab -->
+      <div *ngIf="selectedTab === 'schedule'" class="schedule-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700; color: var(--text-primary);">Full Programme</h2>
+          <button (click)="promptAndSaveProgramme()" class="btn-success">Save Programme</button>
+        </div>
+
+        <!-- Saved Programmes Table -->
+        <div class="saved-programmes-table">
+          <h3>Saved Programmes</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Programme Name</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let prog of savedProgrammes">
+                <td>{{ prog }}</td>
+                <td>
+                  <button (click)="loadProgramme(prog)" class="btn-secondary">Load</button>
+                  <button (click)="deleteProgramme(prog)" class="btn-danger">Delete</button>
+                </td>
+              </tr>
+              <tr *ngIf="savedProgrammes.length === 0">
+                <td colspan="2" style="color: var(--text-muted); text-align: center;">No saved programmes yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Start Time</th>
+              <th>Duration</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of schedule">
+              <td>{{ item.title }}</td>
+              <td>{{ item.startTime }}</td>
+              <td>{{ item.duration }}</td>
+              <td>
+                <span *ngIf="item.actualEnd" style="color: var(--accent-secondary); font-weight: 600;">Completed</span>
+                <span *ngIf="!item.actualEnd && item.actualStart" style="color: var(--accent-primary); font-weight: 600;">In Progress</span>
+                <span *ngIf="!item.actualStart && !item.actualEnd" style="color: var(--text-muted);">Pending</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div *ngIf="editingCurrent" class="edit-current-form" style="margin-bottom: 1.5rem; background: #181c24; border-radius: 8px; padding: 1.2rem 1.5rem; box-shadow: 0 2px 8px rgba(30,64,175,0.10);">
-        <form (ngSubmit)="saveEditCurrent()" style="display: flex; flex-direction: row; gap: 1.2rem; align-items: flex-end; flex-wrap: wrap;">
-          <div style="display: flex; flex-direction: column; min-width: 160px;">
-            <label>Title:
-              <input type="text" [(ngModel)]="editTitle" name="editTitle" required class="input-field" />
-            </label>
+
+      <!-- Current Programme Tab -->
+      <div *ngIf="selectedTab === 'current'" class="current-section">
+        <div class="current-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1.5rem;">
+            <h2 style="margin: 0; font-size: 1.75rem; font-weight: 700; color: var(--text-primary);">Current Activity</h2>
+            <button *ngIf="!editingCurrent && currentTitle !== 'No active activity'" (click)="startEditCurrent()" class="btn-secondary">Edit</button>
           </div>
-          <div style="display: flex; flex-direction: column; min-width: 120px;">
-            <label>Start Time:
-              <input type="time" [(ngModel)]="editStartTime" name="editStartTime" required class="input-field" />
-            </label>
+
+          <div class="current-title">{{ currentTitle }}</div>
+          <div class="remaining-time" [ngStyle]="{'color': remainingColor === 'white' ? 'var(--accent-primary)' : remainingColor === 'orange' ? 'var(--accent-warning)' : remainingColor === 'red' ? 'var(--accent-danger)' : 'var(--text-muted)'}">{{ remainingTime }}</div>
+
+          <div *ngIf="editingCurrent" class="edit-current-form" style="background: var(--bg-tertiary); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 1.5rem; width: 100%;">
+            <form (ngSubmit)="saveEditCurrent()" style="display: flex; flex-direction: row; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 160px;">
+                <label>Title</label>
+                <input type="text" [(ngModel)]="editTitle" name="editTitle" required class="input-field" />
+              </div>
+              <div style="flex: 0 0 auto; min-width: 120px;">
+                <label>Start Time</label>
+                <input type="time" [(ngModel)]="editStartTime" name="editStartTime" required class="input-field" />
+              </div>
+              <div style="flex: 0 0 auto; min-width: 100px;">
+                <label>Duration</label>
+                <input type="text" [(ngModel)]="editDuration" name="editDuration" required class="input-field" />
+              </div>
+              <button type="submit" class="btn-success">Save</button>
+              <button type="button" (click)="cancelEditCurrent()" class="btn-danger">Cancel</button>
+            </form>
           </div>
-          <div style="display: flex; flex-direction: column; min-width: 100px;">
-            <label>Duration:
-              <input type="text" [(ngModel)]="editDuration" name="editDuration" required class="input-field" />
-            </label>
+
+          <!-- Mini Display Preview -->
+          <div class="mini-preview-container">
+            <h4>Mini Display Preview</h4>
+            <iframe id="miniDisplay" #miniDisplayIframe src="display" width="320" height="180" scrolling="no"></iframe>
+
+            <div class="admin-actions" style="margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
+              <!-- Manual Activity Control Buttons -->
+              <div class="manual-controls">
+                <button class="start-next-btn" (click)="startNextActivity()">Start Next</button>
+                <button class="pause-btn" (click)="togglePauseCurrent()">Pause/Resume</button>
+              </div>
+              <button class="end-now-btn" (click)="endNow()" class="btn-danger">End Now</button>
+
+              <div class="skip-section">
+                <label for="skip-to">Skip to item:</label>
+                <select id="skip-to" [(ngModel)]="selectedSkipIndex" class="skip-dropdown">
+                  <option [ngValue]="null" disabled selected>Select item</option>
+                  <option *ngFor="let item of futureItems; let i = index" [ngValue]="item.index">{{ item.title }} ({{ item.startTime }})</option>
+                </select>
+                <button class="skip-btn" (click)="skipToSelected()" [disabled]="selectedSkipIndex === null">Skip To</button>
+              </div>
+            </div>
           </div>
-          <button type="submit" class="save-btn" style="background: #43a047; color: #fff; border: none; border-radius: 5px; padding: 0.5rem 1.2rem; font-size: 1rem; cursor: pointer;">Save</button>
-          <button type="button" (click)="cancelEditCurrent()" class="cancel-btn" style="background: #b71c1c; color: #fff; border: none; border-radius: 5px; padding: 0.5rem 1.2rem; font-size: 1rem; cursor: pointer;">Cancel</button>
+
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; width: 100%;">
+            <button (click)="openDisplayInNewWindow()" class="btn-success">Open Display in New Window</button>
+            <button (click)="endProgramme()" class="btn-danger">End Programme</button>
+          </div>
+
+          <!-- Display Settings -->
+          <div class="display-settings">
+            <h4>Display Settings</h4>
+            <label>
+              <input type="checkbox" [checked]="getDisplayPreferences().alwaysFullscreen" (change)="toggleAlwaysFullscreen($event)" />
+              Always start displays in fullscreen
+            </label>
+            <div class="hint">When enabled, new display windows will automatically enter fullscreen mode on secondary monitors.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcements Tab -->
+      <div *ngIf="selectedTab === 'announcements'" class="admin-card pro-announcement-card">
+        <div class="announcement-header">
+          <h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            Announcements
+          </h3>
+          <p class="announcement-desc">Send a message to all displays. Optionally set a duration (in minutes).</p>
+        </div>
+        <form (ngSubmit)="sendAnnouncement()" class="announcement-form">
+          <div class="form-group">
+            <input type="text" [(ngModel)]="announcementText" name="announcementText" placeholder="Enter announcement..." required class="input-field" maxlength="120" />
+          </div>
+          <div class="form-group duration-group">
+            <input type="number" [(ngModel)]="announcementDuration" name="announcementDuration" min="1" placeholder="Duration (min, default 1)" class="input-field duration-input" />
+          </div>
+          <button type="submit" class="send-announcement-btn">Send Announcement</button>
         </form>
-      </div>
-      <ng-template #noProgramme>
-        <div class="no-programme-message">No active programme. The display will show the preview screen.</div>
-      </ng-template>
-      <!-- Small preview box -->
-      <div class="mini-preview-container" style="background: #181c24; border-radius: 10px; box-shadow: 0 2px 8px rgba(30,64,175,0.10); padding: 1.2rem 1.2rem 2.2rem 1.2rem; margin-bottom: 1.2rem; display: flex; flex-direction: column; align-items: center; width: 370px; max-width: 100%;">
-        <h4 style="margin-bottom: 0.7rem; color: #8ec6ff; font-size: 1.1rem; font-weight: 600; letter-spacing: 0.5px;">Mini Display Preview</h4>
-  <iframe id="miniDisplay" #miniDisplayIframe src="display" width="320" height="180" style="border:1px solid #8ec6ff; background:#fff; overflow:hidden; display:block; border-radius: 6px;" scrolling="no"></iframe>
-        <div class="admin-actions" style="margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1.1rem; width: 100%;">
-          <!-- Manual Activity Control Buttons -->
-          <div class="manual-controls" style="display: flex; flex-direction: row; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-            <button class="start-next-btn" (click)="startNextActivity()" style="width: 160px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">Start Next</button>
-            <button class="pause-btn" (click)="togglePauseCurrent()" style="width: 160px; font-size: 1.08rem; background: #6c757d; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; cursor: pointer;">Pause/Resume</button>
+        <div class="announcement-status">
+          <div *ngIf="activeAnnouncement" class="active-announcement pro-active-announcement">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;">
+              <polyline points="20,6 9,17 4,12"/>
+            </svg>
+            {{ activeAnnouncement }}
           </div>
-          <button class="end-now-btn" (click)="endNow()" style="width: 220px; font-size: 1.08rem;">End Now</button>
-          <div class="skip-section" style="display: flex; flex-direction: row; align-items: center; gap: 0.7rem; justify-content: center; width: 100%; flex-wrap: wrap;">
-            <label for="skip-to" style="margin: 0; font-size: 1.05rem;">Skip to item:</label>
-            <select id="skip-to" [(ngModel)]="selectedSkipIndex" class="skip-dropdown" style="min-width: 140px; font-size: 1.05rem;">
-              <option [ngValue]="null" disabled selected>select item</option>
-              <option *ngFor="let item of futureItems; let i = index" [ngValue]="item.index">{{ item.title }} ({{ item.startTime }})</option>
-            </select>
-            <button class="skip-btn" (click)="skipToSelected()" [disabled]="selectedSkipIndex === null" style="font-size: 1.05rem;">Skip To</button>
+          <div *ngIf="!activeAnnouncement" class="no-active-announcement pro-no-active-announcement">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            No active announcement.
           </div>
-
         </div>
       </div>
-      <div style="display:flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-        <button (click)="openDisplayInNewWindow()" class="open-display-btn" style="margin-top: 1.2rem; width: 220px; font-size: 1.08rem; background: #43a047; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">Open Display in New Window</button>
-        <button (click)="endProgramme()" class="open-display-btn" style="margin-top: 1.2rem; width: 220px; font-size: 1.08rem; background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 0.7rem 0; box-shadow: 0 2px 8px rgba(30,64,175,0.10); cursor: pointer;">End Programme</button>
-      </div>
-      
-      <!-- Display Settings -->
-      <div class="display-settings" style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
-        <h4 style="margin: 0 0 0.8rem 0; font-size: 0.9rem; color: #495057;">Display Settings</h4>
-        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #6c757d;">
-          <input type="checkbox" [checked]="getDisplayPreferences().alwaysFullscreen" (change)="toggleAlwaysFullscreen($event)" style="margin: 0;">
-          Always start displays in fullscreen (like EasyWorship)
-        </label>
-        <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #adb5bd;">
-          When enabled, new display windows will automatically enter fullscreen mode on secondary monitors.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Announcements Tab -->
-  <div *ngIf="selectedTab === 'announcements'" class="admin-card announcements-section pro-announcement-card">
-    <div class="announcement-header">
-      <h3><span class="icon">📢</span> Announcements</h3>
-      <p class="announcement-desc">Send a message to all displays. Optionally set a duration (in minutes).</p>
-    </div>
-    <form (ngSubmit)="sendAnnouncement()" class="announcement-form">
-      <div class="form-group">
-        <input type="text" [(ngModel)]="announcementText" name="announcementText" placeholder="Enter announcement..." required class="input-field" maxlength="120" />
-      </div>
-      <div class="form-group duration-group">
-        <input type="number" [(ngModel)]="announcementDuration" name="announcementDuration" min="1" placeholder="Duration (min, default 1)" class="input-field duration-input" />
-      </div>
-      <button type="submit" class="send-announcement-btn">Send Announcement</button>
-    </form>
-    <div class="announcement-status">
-      <div *ngIf="activeAnnouncement" class="active-announcement pro-active-announcement">
-        <span class="icon">✅</span> {{ activeAnnouncement }}
-      </div>
-      <div *ngIf="!activeAnnouncement" class="no-active-announcement pro-no-active-announcement">
-        <span class="icon">ℹ️</span> No active announcement.
-      </div>
-    </div>
+    </main>
   </div>
 
   <!-- Edit Programme Modal -->

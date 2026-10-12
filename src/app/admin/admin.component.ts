@@ -37,8 +37,8 @@ export class AdminComponent implements OnDestroy, OnInit {
   selectedSkipIndex: number | null = null;
   futureItems: { index: number; title: string; startTime: string }[] = [];
 
-  // Tab selection for UI (default to current activity)
-  selectedTab: 'input' | 'schedule' | 'current' | 'announcements' = 'current';
+  // Tab selection for UI (default to dashboard)
+  selectedTab: 'dashboard' | 'input' | 'schedule' | 'current' | 'announcements' = 'dashboard';
 
   // Reference for the display iframe
   displayIframe: HTMLIFrameElement | null = null;
@@ -69,6 +69,9 @@ export class AdminComponent implements OnDestroy, OnInit {
 
   // List of saved programmes (filenames)
   savedProgrammes: string[] = [];
+
+  // Theme management
+  isDarkMode: boolean = true;
 
   // Default sample programmes to populate localStorage if none exist
   defaultProgrammes: { name: string; data: string }[] = [
@@ -132,6 +135,7 @@ export class AdminComponent implements OnDestroy, OnInit {
     this.populateDefaultProgrammes();
     this.loadSavedProgrammes();
   this.maybePromptLoadDefaultForToday();
+  this.loadThemePreference();
   }
 
   ngOnDestroy(): void {
@@ -146,6 +150,27 @@ export class AdminComponent implements OnDestroy, OnInit {
       this.schedule = this.sharedSchedule.getSchedule();
       this.updateCurrentActivity();
       this.updateFutureItems();
+    }
+  }
+
+  // Theme management
+  loadThemePreference() {
+    const savedTheme = localStorage.getItem('theme-preference');
+    this.isDarkMode = savedTheme === 'dark' || savedTheme === null; // Default to dark mode
+    this.applyTheme();
+  }
+
+  toggleTheme() {
+    this.isDarkMode = !this.isDarkMode;
+    localStorage.setItem('theme-preference', this.isDarkMode ? 'dark' : 'light');
+    this.applyTheme();
+  }
+
+  applyTheme() {
+    if (this.isDarkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
     }
   }
 
