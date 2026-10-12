@@ -63,6 +63,20 @@ This project is a real-time schedule display and admin control system for profes
 - Display UI with fullscreen support, persistent window position, and modern design
 - Announcement overlay: Admin can send announcements that appear on all display windows for a set duration (default 2 minutes), without interrupting the main timer
 - Multi-window and preview support: All display windows (including preview) update in real time
+- Modern UI/UX with earthy color palette, dark mode, and smooth animations
+
+## Recent UI/UX Modernization
+
+The application has been modernized with the following enhancements:
+- Full-screen layout with improved space utilization
+- Libre Franklin font for modern typography
+- Earthy color palette with excellent contrast (light/dark modes)
+- Sidebar navigation with icons and dashboard view
+- Animated backgrounds and glow effects on display
+- Smooth micro-interactions and transitions
+- Responsive design for all screen sizes
+
+**Note**: The UI/UX modernization was developed with assistance from [Devin AI](https://devin.ai), an AI-powered coding assistant that helped implement the modern design system, animations, and theme management while preserving all existing functionality.
 
 ## How to Use Announcements
 
